@@ -1,761 +1,441 @@
-import { useState, useEffect, useRef, useCallback } from “react”;
+<!DOCTYPE html>
 
-const GROQ_API_KEY = “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”;
-const GROQ_MODEL = “llama-3.3-70b-versatile”;
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SLIDE·LIVE</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#080a0f;color:#e8edf5;font-family:'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:#1e2530;border-radius:2px;}
+
+#header{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid #1e2530;background:rgba(13,17,23,.97);flex-shrink:0;}
+.logo{font-size:20px;font-weight:900;letter-spacing:4px;background:linear-gradient(90deg,#00e5ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo span{background:linear-gradient(90deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+#hright{display:flex;align-items:center;gap:16px;}
+.hstat{font-family:monospace;font-size:11px;color:#4a5568;}
+.hstat b{color:#00e5ff;}
+#genBadge{display:none;align-items:center;gap:5px;}
+#genBadge span{font-family:monospace;font-size:10px;letter-spacing:2px;color:#00e5ff;}
+.gd{width:5px;height:5px;border-radius:50%;background:#00e5ff;animation:pulse 1s ease-in-out infinite;}
+.gd:nth-child(2){animation-delay:.2s;}.gd:nth-child(3){animation-delay:.4s;}
+
+#main{flex:1;display:flex;overflow:hidden;}
+
+#slideArea{flex:1;display:flex;flex-direction:column;padding:20px;gap:12px;overflow:hidden;}
+#slideStage{flex:1;display:flex;align-items:center;justify-content:center;}
+#slideFrame{width:100%;max-width:800px;aspect-ratio:16/9;border-radius:10px;overflow:hidden;border:1px solid #1e2530;box-shadow:0 20px 60px rgba(0,0,0,.5);position:relative;transition:border .3s,box-shadow .3s;}
+#slideFrame.gen{border-color:#00e5ff;box-shadow:0 0 50px rgba(0,229,255,.2),0 20px 60px rgba(0,0,0,.5);}
+#slideCanvas{width:100%;height:100%;}
+#genOverlay{display:none;position:absolute;inset:0;background:rgba(8,10,15,.72);align-items:center;justify-content:center;flex-direction:column;gap:10px;backdrop-filter:blur(4px);}
+#genOverlay.show{display:flex;}
+#genOverlay p{font-family:monospace;font-size:11px;letter-spacing:3px;color:#00e5ff;}
+
+#thumbs{display:flex;gap:8px;overflow-x:auto;padding:4px 0;flex-shrink:0;min-height:74px;}
+.thumb{flex-shrink:0;width:116px;height:65px;border-radius:6px;overflow:hidden;cursor:pointer;border:2px solid #1e2530;position:relative;transition:border .2s,transform .15s;}
+.thumb:hover{transform:translateY(-2px);border-color:#555;}
+.thumb.active{border-color:#00e5ff;box-shadow:0 0 12px rgba(0,229,255,.35);}
+.tprev{width:116px;height:65px;position:relative;overflow:hidden;}
+.tscale{position:absolute;top:0;left:0;width:800px;height:450px;transform:scale(0.1448);transform-origin:top left;pointer-events:none;}
+.tnum{position:absolute;bottom:3px;right:4px;font-size:8px;font-family:monospace;color:rgba(255,255,255,.75);background:rgba(0,0,0,.6);padding:1px 5px;border-radius:3px;z-index:2;}
+
+#right{width:280px;border-left:1px solid #1e2530;background:#0d1117;display:flex;flex-direction:column;flex-shrink:0;}
+.plabel{font-family:monospace;font-size:9px;letter-spacing:3px;color:#4a5568;text-transform:uppercase;padding:12px 14px 4px;}
+
+#micArea{padding:16px 20px;border-bottom:1px solid #1e2530;display:flex;flex-direction:column;align-items:center;gap:10px;}
+#micBtn{width:68px;height:68px;border-radius:50%;background:#080a0f;border:2px solid #1e2530;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:26px;transition:all .3s;}
+#micBtn.on{border-color:#00e5ff;background:rgba(0,229,255,.08);box-shadow:0 0 28px rgba(0,229,255,.25);}
+#waveform{display:flex;gap:3px;align-items:center;height:26px;}
+.wbar{width:3px;background:#00e5ff;border-radius:2px;height:4px;opacity:.2;transition:height .12s;}
+#waveform.on .wbar{opacity:.75;}
+#micStatus{font-family:monospace;font-size:10px;letter-spacing:2px;color:#4a5568;text-transform:uppercase;}
+#micStatus.on{color:#00e5ff;}
+
+#manualRow{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid #1e2530;}
+#manualInput{flex:1;background:#080a0f;border:1px solid #1e2530;color:#e8edf5;padding:7px 10px;border-radius:6px;font-size:12px;outline:none;font-family:inherit;}
+#manualInput:focus{border-color:#00e5ff;}
+#sendBtn{background:#00e5ff;color:#000;border:none;padding:7px 13px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;}
+
+#logBox{flex:1;overflow-y:auto;}
+.logEntry{padding:8px 14px;border-bottom:1px solid rgba(30,37,48,.4);}
+.logMeta{display:flex;gap:6px;align-items:center;margin-bottom:3px;}
+.logTime{font-family:monospace;font-size:8px;color:#4a5568;}
+.logBadge{font-family:monospace;font-size:7px;padding:1px 5px;border-radius:3px;letter-spacing:1px;text-transform:uppercase;}
+.logBadge.voice{background:rgba(0,229,255,.1);color:#00e5ff;}
+.logBadge.slide{background:rgba(124,58,237,.15);color:#a78bfa;}
+.logText{font-size:11px;color:rgba(232,237,245,.65);line-height:1.4;}
+
+#controls{display:flex;gap:6px;padding:10px 14px;border-top:1px solid #1e2530;}
+.ctrlBtn{flex:1;padding:7px;background:transparent;border:1px solid #1e2530;color:#4a5568;border-radius:6px;cursor:pointer;font-family:monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;transition:all .2s;}
+.ctrlBtn:hover{border-color:#a78bfa;color:#a78bfa;}
+
+#emptyState{width:100%;height:100%;background:#0d1117;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;opacity:.38;}
+#emptyState .ei{font-size:40px;}
+#emptyState .et{font-family:monospace;letter-spacing:4px;font-size:14px;color:#4a5568;}
+#emptyState .es{font-size:12px;color:#4a5568;}
+
+@keyframes slideIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{transform:scale(.6);opacity:.3}50%{transform:scale(1);opacity:1}}
+</style>
+
+</head>
+<body>
+
+<div id="header">
+  <div class="logo">SLIDE<span>·LIVE</span></div>
+  <div id="hright">
+    <div class="hstat">SLIDES: <b id="slideCount">0</b></div>
+    <div class="hstat" id="timer">00:00</div>
+    <div id="genBadge"><div class="gd"></div><div class="gd"></div><div class="gd"></div><span>GENERANDO</span></div>
+  </div>
+</div>
+
+<div id="main">
+  <div id="slideArea">
+    <div id="slideStage">
+      <div id="slideFrame">
+        <div id="slideCanvas">
+          <div id="emptyState">
+            <div class="ei">🎤</div>
+            <div class="et">PRONTO AD ASCOLTARE</div>
+            <div class="es">Parla o scrivi per generare una slide</div>
+          </div>
+        </div>
+        <div id="genOverlay">
+          <div style="display:flex;gap:6px"><div class="gd"></div><div class="gd"></div><div class="gd"></div></div>
+          <p>GENERANDO SLIDE</p>
+        </div>
+      </div>
+    </div>
+    <div id="thumbs"></div>
+  </div>
+
+  <div id="right">
+    <div class="plabel">INPUT VOCALE</div>
+    <div id="micArea">
+      <div id="micBtn" onclick="toggleMic()">🎤</div>
+      <div id="waveform">
+        <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+        <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+      </div>
+      <div id="micStatus">PREMI PER PARLARE</div>
+    </div>
+    <div id="manualRow">
+      <input id="manualInput" type="text" placeholder="Oppure scrivi qui..." onkeydown="if(event.key==='Enter')sendManual()"/>
+      <button id="sendBtn" onclick="sendManual()">→</button>
+    </div>
+    <div class="plabel">LOG</div>
+    <div id="logBox"></div>
+    <div id="controls"><button class="ctrlBtn" onclick="clearAll()">RESET</button></div>
+  </div>
+</div>
+
+<script>
+const GROQ_KEY   = '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';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 const THEMES = [
-{ bg: “#1a1a2e”, accent: “#e94560”, accent2: “#16213e”, text: “#fff”, sidebar: “#e94560” },
-{ bg: “#0a3d62”, accent: “#f9ca24”, accent2: “#0c2461”, text: “#fff”, sidebar: “#f9ca24” },
-{ bg: “#1e272e”, accent: “#00d2d3”, accent2: “#222f3e”, text: “#fff”, sidebar: “#00d2d3” },
-{ bg: “#6c5ce7”, accent: “#fdcb6e”, accent2: “#5f27cd”, text: “#fff”, sidebar: “#fdcb6e” },
-{ bg: “#fff”, accent: “#6c5ce7”, accent2: “#f1f2f6”, text: “#2d3436”, sidebar: “#6c5ce7” },
-{ bg: “#2d3436”, accent: “#00cec9”, accent2: “#353b48”, text: “#fff”, sidebar: “#00cec9” },
-{ bg: “#fff”, accent: “#e17055”, accent2: “#f8f9fa”, text: “#2d3436”, sidebar: “#e17055” },
-{ bg: “#0f0c29”, accent: “#a29bfe”, accent2: “#302b63”, text: “#fff”, sidebar: “#a29bfe” },
+  {bg:'#1a1a2e',accent:'#e94560',accent2:'#16213e',text:'#fff'},
+  {bg:'#0a3d62',accent:'#f9ca24',accent2:'#0c2461',text:'#fff'},
+  {bg:'#1e272e',accent:'#00d2d3',accent2:'#222f3e',text:'#fff'},
+  {bg:'#6c5ce7',accent:'#fdcb6e',accent2:'#5f27cd',text:'#fff'},
+  {bg:'#f8f9fa',accent:'#6c5ce7',accent2:'#ebebf5',text:'#2d3436'},
+  {bg:'#2d3436',accent:'#00cec9',accent2:'#353b48',text:'#fff'},
+  {bg:'#ffffff',accent:'#e17055',accent2:'#f8f9fa',text:'#2d3436'},
+  {bg:'#0f0c29',accent:'#a29bfe',accent2:'#302b63',text:'#fff'},
 ];
+const BI = ['◆','▸','●','★','→','✦','►','◉'];
+const SI = ['📈','🎯','⚡','🔥','💡','🚀','💎','📊'];
+const TI = ['🚀','💡','🎯','⚡','🌟','🔥','💎','🎨'];
+const II = ['🌐','🧠','💼','🏆','🔬','📱','🎨','⚙️','🌍','📡'];
 
-const ICONS = {
-bullets: [“◆”,“▸”,“●”,“★”,“→”,“✦”,“►”,“◉”],
-stats:   [“📈”,“🎯”,“⚡”,“🔥”,“💡”,“🚀”,“💎”,“📊”],
-};
+let slides=[], currentIdx=-1, isListening=false, isGenerating=false;
+let recognition=null, accText='', silenceTimer=null;
+const t0 = Date.now();
 
-function pickTheme(idx) { return THEMES[idx % THEMES.length]; }
+// Timer
+setInterval(()=>{
+  const e=Math.floor((Date.now()-t0)/1000);
+  document.getElementById('timer').textContent=String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');
+},1000);
 
-// ─── SLIDE RENDERERS ──────────────────────────────────────────────────────────
+// Waveform
+setInterval(()=>{
+  if(!isListening)return;
+  document.querySelectorAll('.wbar').forEach(b=>b.style.height=(3+Math.random()*19)+'px');
+},110);
 
-function SlideTitle({ data, theme, idx }) {
-const icon = [“🚀”,“💡”,“🎯”,“⚡”,“🌟”,“🔥”,“💎”,“🎨”][idx % 8];
-return (
-<div style={{
-width:“100%”, height:“100%”, background: theme.bg,
-display:“flex”, position:“relative”, overflow:“hidden”, fontFamily:”‘Segoe UI’,sans-serif”
-}}>
-{/* Left colored sidebar */}
-<div style={{
-width:“8px”, background: theme.accent, flexShrink:0,
-boxShadow:`0 0 30px ${theme.accent}88`
-}}/>
-{/* Big decorative circle */}
-<div style={{
-position:“absolute”, right:”-60px”, top:”-60px”,
-width:“280px”, height:“280px”, borderRadius:“50%”,
-background: theme.accent + “18”, border: `2px solid ${theme.accent}30`
-}}/>
-<div style={{
-position:“absolute”, right:“60px”, bottom:”-40px”,
-width:“160px”, height:“160px”, borderRadius:“50%”,
-background: theme.accent + “10”, border: `1px solid ${theme.accent}20`
-}}/>
-{/* Content */}
-<div style={{ flex:1, padding:“40px 50px”, display:“flex”, flexDirection:“column”, justifyContent:“center”, zIndex:1 }}>
-<div style={{
-display:“inline-flex”, alignItems:“center”, gap:“8px”,
-background: theme.accent + “22”, borderRadius:“20px”,
-padding:“4px 14px”, marginBottom:“20px”, width:“fit-content”,
-border:`1px solid ${theme.accent}44`
-}}>
-<span style={{ fontSize:“11px”, color: theme.accent, fontWeight:700, letterSpacing:“2px” }}>
-{data.tag || “SLIDE LIVE”}
-</span>
-</div>
-<div style={{ fontSize:“clamp(22px,4vw,42px)”, fontWeight:800, color: theme.text, lineHeight:1.1, marginBottom:“16px” }}>
-{data.title}
-</div>
-{data.subtitle && (
-<div style={{ fontSize:“clamp(11px,1.6vw,16px)”, color: theme.text + “bb”, lineHeight:1.6, maxWidth:“460px” }}>
-{data.subtitle}
-</div>
-)}
-<div style={{ marginTop:“28px”, fontSize:“32px” }}>{icon}</div>
-</div>
-{/* Bottom accent line */}
-<div style={{
-position:“absolute”, bottom:0, left:0, right:0, height:“4px”,
-background:`linear-gradient(90deg, ${theme.accent}, ${theme.accent}00)`
-}}/>
-</div>
-);
+// Speech
+(function(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    document.getElementById('micStatus').textContent='USA IL CAMPO TESTO';
+    document.getElementById('micBtn').style.opacity='.3';
+    document.getElementById('micBtn').onclick=null;
+    return;
+  }
+  recognition=new SR();
+  recognition.lang='it-IT';
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.onresult=e=>{
+    let fin='';
+    for(let i=e.resultIndex;i<e.results.length;i++)
+      if(e.results[i].isFinal)fin+=e.results[i][0].transcript;
+    if(!fin)return;
+    accText+=' '+fin.trim();
+    addLog(fin.trim(),'voice');
+    clearTimeout(silenceTimer);
+    silenceTimer=setTimeout(()=>{
+      const t=accText.trim();
+      if(t.length>8&&!isGenerating){accText='';generateSlide(t);}
+    },2000);
+  };
+  recognition.onerror=e=>{
+    if(e.error==='not-allowed'){document.getElementById('micStatus').textContent='NON AUTORIZZATO';setMicUI(false);}
+  };
+  recognition.onend=()=>{if(isListening)try{recognition.start();}catch(_){}};
+})();
+
+function toggleMic(){if(!recognition)return;isListening?stopMic():startMic();}
+function startMic(){isListening=true;try{recognition.start();}catch(_){}setMicUI(true);}
+function stopMic(){
+  isListening=false;try{recognition.stop();}catch(_){}setMicUI(false);clearTimeout(silenceTimer);
+  const t=accText.trim();if(t.length>8&&!isGenerating){accText='';generateSlide(t);}
+}
+function setMicUI(on){
+  document.getElementById('micBtn').className=on?'on':'';
+  document.getElementById('micBtn').textContent=on?'⏹':'🎤';
+  document.getElementById('waveform').className=on?'on':'';
+  const s=document.getElementById('micStatus');
+  s.textContent=on?'IN ASCOLTO...':'PREMI PER PARLARE';
+  s.className=on?'on':'';
+  if(!on)document.querySelectorAll('.wbar').forEach(b=>b.style.height='4px');
 }
 
-function SlideBullets({ data, theme, idx }) {
-const bullets = data.bullets || [];
-const iconSet = ICONS.bullets;
-return (
-<div style={{
-width:“100%”, height:“100%”, background: theme.bg,
-display:“flex”, overflow:“hidden”, fontFamily:”‘Segoe UI’,sans-serif”, position:“relative”
-}}>
-{/* Colored header band */}
-<div style={{
-position:“absolute”, top:0, left:0, right:0, height:“70px”,
-background:`linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`,
-zIndex:0
-}}/>
-{/* Diagonal cut */}
-<div style={{
-position:“absolute”, top:“50px”, left:0, right:0, height:“40px”,
-background: theme.bg,
-clipPath:“polygon(0 40px, 100% 0, 100% 40px, 0 40px)”,
-zIndex:1
-}}/>
-{/* Content */}
-<div style={{ flex:1, padding:“0”, display:“flex”, flexDirection:“column”, zIndex:2 }}>
-{/* Header */}
-<div style={{ padding:“14px 40px 0”, height:“70px”, display:“flex”, alignItems:“center”, gap:“12px” }}>
-<div style={{
-width:“32px”, height:“32px”, borderRadius:“8px”,
-background:“rgba(255,255,255,0.25)”, display:“flex”, alignItems:“center”,
-justifyContent:“center”, fontSize:“16px”
-}}>📋</div>
-<div style={{ fontSize:“clamp(12px,1.8vw,18px)”, fontWeight:800, color:”#fff”, letterSpacing:“0.5px” }}>
-{data.title}
-</div>
-</div>
-{/* Bullets */}
-<div style={{ flex:1, padding:“24px 40px”, display:“flex”, flexDirection:“column”, justifyContent:“center”, gap:“12px” }}>
-{bullets.map((b, i) => (
-<div key={i} style={{ display:“flex”, alignItems:“flex-start”, gap:“12px” }}>
-<div style={{
-width:“28px”, height:“28px”, borderRadius:“8px”, flexShrink:0,
-background: theme.accent + “22”, border:`1px solid ${theme.accent}44`,
-display:“flex”, alignItems:“center”, justifyContent:“center”,
-fontSize:“12px”, color: theme.accent, fontWeight:700, marginTop:“1px”
-}}>
-{iconSet[i % iconSet.length]}
-</div>
-<div style={{ fontSize:“clamp(11px,1.4vw,14px)”, color: theme.text + “dd”, lineHeight:1.5, paddingTop:“4px” }}>
-{b}
-</div>
-</div>
-))}
-</div>
-</div>
-{/* Right decorative stripe */}
-<div style={{ width:“6px”, background:`linear-gradient(180deg, ${theme.accent}, transparent)`, flexShrink:0 }}/>
-</div>
-);
+function sendManual(){
+  const inp=document.getElementById('manualInput');
+  const t=inp.value.trim();
+  if(!t||isGenerating)return;
+  inp.value='';addLog(t,'voice');generateSlide(t);
 }
 
-function SlideStats({ data, theme, idx }) {
-const stats = data.stats || [];
-return (
-<div style={{
-width:“100%”, height:“100%”, background: theme.bg,
-display:“flex”, flexDirection:“column”, overflow:“hidden”,
-fontFamily:”‘Segoe UI’,sans-serif”, position:“relative”
-}}>
-{/* Background pattern */}
-<div style={{
-position:“absolute”, inset:0,
-backgroundImage:`radial-gradient(circle at 80% 20%, ${theme.accent}15 0%, transparent 50%), radial-gradient(circle at 20% 80%, ${theme.accent2}40 0%, transparent 50%)`
-}}/>
-{/* Top bar */}
-<div style={{
-padding:“20px 40px 12px”, borderBottom:`1px solid ${theme.accent}30`,
-display:“flex”, alignItems:“center”, gap:“12px”, zIndex:1
-}}>
-<div style={{
-width:“4px”, height:“28px”, background: theme.accent,
-borderRadius:“2px”, boxShadow:`0 0 10px ${theme.accent}`
-}}/>
-<div style={{ fontSize:“clamp(13px,2vw,20px)”, fontWeight:800, color: theme.text }}>
-{data.title}
-</div>
-<div style={{
-marginLeft:“auto”, fontSize:“10px”, color: theme.accent,
-letterSpacing:“2px”, fontWeight:700
-}}>{data.tag || “DATI”}</div>
-</div>
-{/* Stats grid */}
-<div style={{
-flex:1, padding:“16px 30px”, display:“flex”, alignItems:“center”,
-justifyContent:“center”, gap:“16px”, zIndex:1, flexWrap:“wrap”
-}}>
-{stats.map((s, i) => (
-<div key={i} style={{
-flex:1, minWidth:“100px”, maxWidth:“160px”,
-background: theme.accent2 + “aa”,
-border:`1px solid ${theme.accent}44`,
-borderRadius:“16px”, padding:“20px 16px”, textAlign:“center”,
-backdropFilter:“blur(10px)”,
-boxShadow:`0 4px 20px ${theme.accent}20`
-}}>
-<div style={{ fontSize:“10px”, color: theme.accent, letterSpacing:“2px”, fontWeight:700, marginBottom:“8px” }}>
-{ICONS.stats[i % ICONS.stats.length]}
-</div>
-<div style={{ fontSize:“clamp(20px,3.5vw,36px)”, fontWeight:900, color: theme.accent, lineHeight:1 }}>
-{s.value}
-</div>
-<div style={{ fontSize:“9px”, color: theme.text + “88”, letterSpacing:“1.5px”, marginTop:“8px”, textTransform:“uppercase” }}>
-{s.label}
-</div>
-</div>
-))}
-</div>
-</div>
-);
-}
+async function generateSlide(text){
+  isGenerating=true;
+  document.getElementById('slideFrame').classList.add('gen');
+  document.getElementById('genOverlay').classList.add('show');
+  document.getElementById('genBadge').style.display='flex';
 
-function SlideQuote({ data, theme, idx }) {
-return (
-<div style={{
-width:“100%”, height:“100%”,
-background:`linear-gradient(135deg, ${theme.bg} 0%, ${theme.accent2} 100%)`,
-display:“flex”, flexDirection:“column”, alignItems:“center”, justifyContent:“center”,
-overflow:“hidden”, fontFamily:“Georgia, serif”, padding:“40px 60px”,
-position:“relative”, textAlign:“center”
-}}>
-{/* Big quote mark */}
-<div style={{
-position:“absolute”, top:”-10px”, left:“20px”,
-fontSize:“180px”, color: theme.accent + “18”, fontWeight:900, lineHeight:1,
-fontFamily:“Georgia, serif”, userSelect:“none”
-}}>”</div>
-<div style={{
-position:“absolute”, bottom:”-40px”, right:“20px”,
-fontSize:“180px”, color: theme.accent + “18”, fontWeight:900, lineHeight:1,
-fontFamily:“Georgia, serif”, userSelect:“none”
-}}>”</div>
-{/* Tag */}
-<div style={{
-fontSize:“10px”, letterSpacing:“3px”, color: theme.accent,
-fontFamily:”‘Segoe UI’,sans-serif”, fontWeight:700,
-marginBottom:“20px”, textTransform:“uppercase”
-}}>{data.tag || “CITAZIONE”}</div>
-{/* Quote text */}
-<div style={{
-fontSize:“clamp(14px,2.2vw,22px)”, color: theme.text,
-lineHeight:1.6, fontStyle:“italic”, maxWidth:“500px”, zIndex:1,
-textShadow:`0 2px 20px ${theme.bg}88`
-}}>
-“{data.quote || data.title}”
-</div>
-{/* Divider */}
-<div style={{
-width:“60px”, height:“3px”, background: theme.accent,
-borderRadius:“2px”, margin:“20px auto”,
-boxShadow:`0 0 12px ${theme.accent}`
-}}/>
-{data.title && data.quote && (
-<div style={{ fontSize:“12px”, color: theme.text + “99”, fontFamily:”‘Segoe UI’,sans-serif”, letterSpacing:“1px” }}>
-— {data.title}
-</div>
-)}
-</div>
-);
-}
-
-function SlideImage({ data, theme, idx }) {
-// Two-column layout: icon/visual left, text right
-const emoji = [“🌐”,“🧠”,“💼”,“🏆”,“🔬”,“📱”,“🎨”,“⚙️”,“🌍”,“📡”][idx % 10];
-return (
-<div style={{
-width:“100%”, height:“100%”, background: theme.bg,
-display:“flex”, overflow:“hidden”, fontFamily:”‘Segoe UI’,sans-serif”
-}}>
-{/* Left visual panel */}
-<div style={{
-width:“38%”, background:`linear-gradient(160deg, ${theme.accent}, ${theme.accent2})`,
-display:“flex”, flexDirection:“column”, alignItems:“center”, justifyContent:“center”,
-gap:“12px”, padding:“20px”, flexShrink:0, position:“relative”, overflow:“hidden”
-}}>
-<div style={{
-position:“absolute”, top:”-30px”, left:”-30px”,
-width:“120px”, height:“120px”, borderRadius:“50%”,
-background:“rgba(255,255,255,0.1)”
-}}/>
-<div style={{
-position:“absolute”, bottom:”-20px”, right:”-20px”,
-width:“80px”, height:“80px”, borderRadius:“50%”,
-background:“rgba(255,255,255,0.08)”
-}}/>
-<div style={{ fontSize:“52px”, zIndex:1 }}>{emoji}</div>
-<div style={{
-fontSize:“9px”, letterSpacing:“3px”, color:“rgba(255,255,255,0.7)”,
-fontWeight:700, textTransform:“uppercase”, zIndex:1
-}}>{data.tag || “LIVE”}</div>
-</div>
-{/* Right content */}
-<div style={{ flex:1, padding:“28px 32px”, display:“flex”, flexDirection:“column”, justifyContent:“center” }}>
-<div style={{ fontSize:“clamp(14px,2.2vw,22px)”, fontWeight:800, color: theme.text, marginBottom:“14px”, lineHeight:1.2 }}>
-{data.title}
-</div>
-{data.subtitle && (
-<div style={{ fontSize:“clamp(10px,1.3vw,13px)”, color: theme.text + “aa”, lineHeight:1.6, marginBottom:“16px” }}>
-{data.subtitle}
-</div>
-)}
-{(data.bullets || []).map((b, i) => (
-<div key={i} style={{ display:“flex”, alignItems:“center”, gap:“8px”, marginBottom:“8px” }}>
-<div style={{ width:“6px”, height:“6px”, borderRadius:“50%”, background: theme.accent, flexShrink:0 }}/>
-<div style={{ fontSize:“clamp(10px,1.2vw,12px)”, color: theme.text + “cc” }}>{b}</div>
-</div>
-))}
-</div>
-</div>
-);
-}
-
-function renderSlide(data, themeIdx) {
-const theme = pickTheme(themeIdx);
-switch(data.type) {
-case “title”:   return <SlideTitle   data={data} theme={theme} idx={themeIdx}/>;
-case “bullets”: return <SlideBullets data={data} theme={theme} idx={themeIdx}/>;
-case “stats”:   return <SlideStats   data={data} theme={theme} idx={themeIdx}/>;
-case “quote”:   return <SlideQuote   data={data} theme={theme} idx={themeIdx}/>;
-case “image”:   return <SlideImage   data={data} theme={theme} idx={themeIdx}/>;
-default:        return <SlideTitle   data={data} theme={theme} idx={themeIdx}/>;
-}
-}
-
-// ─── THUMBNAIL ────────────────────────────────────────────
-function Thumb({ slide, index, active, onClick }) {
-const theme = pickTheme(index);
-return (
-<div onClick={onClick} style={{
-flexShrink:0, width:“110px”, height:“62px”,
-borderRadius:“6px”, overflow:“hidden”, cursor:“pointer”,
-border: active ? `2px solid #00e5ff` : “2px solid #1e2530”,
-boxShadow: active ? “0 0 12px rgba(0,229,255,0.4)” : “none”,
-transition:“all 0.2s”, position:“relative”,
-background: theme.bg
-}}>
-<div style={{ width:“100%”, height:“100%”, transform:“scale(1)”, pointerEvents:“none” }}>
-<div style={{ width:“733px”, height:“413px”, transform:“scale(0.15)”, transformOrigin:“top left” }}>
-{renderSlide(slide.data, index)}
-</div>
-</div>
-<div style={{
-position:“absolute”, bottom:“3px”, right:“4px”,
-fontSize:“8px”, color:“rgba(255,255,255,0.6)”,
-fontFamily:“monospace”, fontWeight:700,
-background:“rgba(0,0,0,0.5)”, padding:“1px 4px”, borderRadius:“3px”
-}}>{index+1}</div>
-</div>
-);
-}
-
-// ─── MAIN APP ─────────────────────────────────────────────
-export default function SlideLive() {
-const [slides, setSlides] = useState([]);
-const [currentIdx, setCurrentIdx] = useState(-1);
-const [isListening, setIsListening] = useState(false);
-const [isGenerating, setIsGenerating] = useState(false);
-const [micStatus, setMicStatus] = useState(“PREMI PER PARLARE”);
-const [transcript, setTranscript] = useState([]);
-const [manualText, setManualText] = useState(””);
-const [sessionTime, setSessionTime] = useState(“00:00”);
-const [animKey, setAnimKey] = useState(0);
-const [hasSpeech, setHasSpeech] = useState(true);
-
-const recognitionRef = useRef(null);
-const accTextRef = useRef(””);
-const silenceRef = useRef(null);
-const sessionStartRef = useRef(Date.now());
-const transcriptRef = useRef(null);
-const isGeneratingRef = useRef(false);
-
-// Session timer
-useEffect(() => {
-const t = setInterval(() => {
-const e = Math.floor((Date.now() - sessionStartRef.current) / 1000);
-const m = String(Math.floor(e/60)).padStart(2,“0”);
-const s = String(e%60).padStart(2,“0”);
-setSessionTime(`${m}:${s}`);
-}, 1000);
-return () => clearInterval(t);
-}, []);
-
-// Speech recognition init
-useEffect(() => {
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (!SR) { setHasSpeech(false); return; }
-const r = new SR();
-r.lang = “it-IT”;
-r.continuous = true;
-r.interimResults = true;
-r.onresult = (e) => {
-let final = “”;
-for (let i = e.resultIndex; i < e.results.length; i++) {
-if (e.results[i].isFinal) final += e.results[i][0].transcript;
-}
-if (final) {
-accTextRef.current += “ “ + final.trim();
-addLog(final.trim(), “voice”);
-clearTimeout(silenceRef.current);
-silenceRef.current = setTimeout(() => {
-const t = accTextRef.current.trim();
-if (t.length > 8 && !isGeneratingRef.current) {
-accTextRef.current = “”;
-triggerGenerate(t);
-}
-}, 2000);
-}
-};
-r.onerror = (e) => {
-if (e.error === “not-allowed”) {
-setHasSpeech(false);
-setMicStatus(“NON AUTORIZZATO”);
-}
-};
-r.onend = () => {
-if (recognitionRef.current?.*listening) {
-try { r.start(); } catch(*) {}
-}
-};
-recognitionRef.current = r;
-return () => { try { r.stop(); } catch(_) {} };
-}, []);
-
-const addLog = (text, type) => {
-const now = new Date();
-const time = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-setTranscript(p => […p.slice(-30), { text, type, time }]);
-setTimeout(() => { if (transcriptRef.current) transcriptRef.current.scrollTop = 9999; }, 50);
-};
-
-const triggerGenerate = useCallback(async (text) => {
-isGeneratingRef.current = true;
-setIsGenerating(true);
-
-```
-const system = `Sei un generatore di slide visive professionali tipo PowerPoint. Crea slide visivamente ricche.
-```
-
-Rispondi SOLO con JSON valido, nessun testo extra, nessun markdown.
-Struttura:
+  const sys=`Sei un generatore di slide visive professionali tipo PowerPoint.
+Rispondi SOLO con JSON valido, zero testo aggiuntivo, zero markdown.
+Schema:
 {
-“type”: “title|bullets|stats|quote|image”,
-“tag”: “PAROLA CHIAVE IN MAIUSCOLO”,
-“title”: “Titolo impattante max 7 parole”,
-“subtitle”: “Descrizione max 18 parole (solo per title/image)”,
-“bullets”: [“punto 1 dettagliato”, “punto 2”, “punto 3”, “punto 4”] (per bullets/image),
-“stats”: [{“value”: “87%”, “label”: “EFFICIENZA”}, {“value”: “3x”, “label”: “CRESCITA”}] (per stats, max 3),
-“quote”: “frase ispirazionale o principio” (per quote)
+  "type": "title|bullets|stats|quote|image",
+  "tag": "KEYWORD IN MAIUSCOLO",
+  "title": "Titolo max 7 parole",
+  "subtitle": "Descrizione max 18 parole (solo per title e image)",
+  "bullets": ["punto 1","punto 2","punto 3","punto 4"],
+  "stats": [{"value":"87%","label":"EFFICIENZA"},{"value":"3x","label":"CRESCITA"}],
+  "quote": "frase ispirazionale"
 }
-Regole:
+Scelta tipo:
+- title → argomento nuovo, concetto generale
+- bullets → lista, processo, caratteristiche
+- stats → numeri, percentuali, performance
+- quote → principi, citazioni, filosofia
+- image → soggetti visivi, prodotti, luoghi
+Rispondi in italiano. Sii specifico.`;
 
-- title: per introduzioni, argomenti nuovi, concetti generali
-- bullets: per processi, caratteristiche, vantaggi, passaggi
-- stats: per numeri, percentuali, performance, confronti
-- quote: per principi, filosofie, citazioni
-- image: per argomenti visivi, prodotti, luoghi
-  Rispondi in italiano. Sii specifico e informativo, non generico.`;
-  
-  try {
-  const res = await fetch(“https://api.groq.com/openai/v1/chat/completions”, {
-  method: “POST”,
-  headers: { “Content-Type”: “application/json”, “Authorization”: `Bearer ${GROQ_API_KEY}` },
-  body: JSON.stringify({
-  model: GROQ_MODEL, max_tokens: 800, temperature: 0.7,
-  messages: [
-  { role: “system”, content: system },
-  { role: “user”, content: `Crea una slide PowerPoint visiva per: "${text}"` }
-  ]
-  })
-  });
-  const data = await res.json();
-  const raw = data.choices?.[0]?.message?.content || “”;
-  const clean = raw.replace(/`json|`/g, “”).trim();
-  let parsed;
-  try { parsed = JSON.parse(clean); }
-  catch { parsed = { type: “title”, tag: “LIVE”, title: text.split(” “).slice(0,6).join(” “), subtitle: text }; }
-  
-  ```
-  setSlides(prev => {
-    const next = [...prev, { data: parsed, text }];
-    setCurrentIdx(next.length - 1);
-    setAnimKey(k => k+1);
-    return next;
-  });
-  addLog(`✦ Slide: "${parsed.title}"`, "slide");
-  ```
-  
-  } catch {
-  const fallback = { type: “title”, tag: “LIVE”, title: text.split(” “).slice(0,5).join(” “) || “SLIDE”, subtitle: text };
-  setSlides(prev => { const n=[…prev,{data:fallback,text}]; setCurrentIdx(n.length-1); setAnimKey(k=>k+1); return n; });
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      body:JSON.stringify({model:GROQ_MODEL,max_tokens:700,temperature:0.7,
+        messages:[{role:'system',content:sys},{role:'user',content:'Crea una slide PowerPoint visiva per: "'+text+'"'}]})
+    });
+    const data=await res.json();
+    const raw=(data.choices?.[0]?.message?.content||'').replace(/```json|```/g,'').trim();
+    let parsed;
+    try{parsed=JSON.parse(raw);}
+    catch{parsed={type:'title',tag:'LIVE',title:text.split(' ').slice(0,6).join(' '),subtitle:text};}
+    pushSlide(parsed,text);
+    addLog('✦ Slide: "'+parsed.title+'"','slide');
+  }catch{
+    pushSlide({type:'title',tag:'LIVE',title:text.split(' ').slice(0,5).join(' ')||'SLIDE',subtitle:text},text);
   }
-  isGeneratingRef.current = false;
-  setIsGenerating(false);
-  }, []);
-  
-  const toggleMic = () => {
-  const r = recognitionRef.current;
-  if (!r) return;
-  if (isListening) {
-  r.*listening = false;
-  try { r.stop(); } catch(*) {}
-  setIsListening(false);
-  setMicStatus(“PREMI PER PARLARE”);
-  clearTimeout(silenceRef.current);
-  const t = accTextRef.current.trim();
-  if (t.length > 8 && !isGeneratingRef.current) { accTextRef.current = “”; triggerGenerate(t); }
-  } else {
-  r.*listening = true;
-  try { r.start(); } catch(*) {}
-  setIsListening(true);
-  setMicStatus(“IN ASCOLTO…”);
+  isGenerating=false;
+  document.getElementById('slideFrame').classList.remove('gen');
+  document.getElementById('genOverlay').classList.remove('show');
+  document.getElementById('genBadge').style.display='none';
+}
+
+function pushSlide(data,text){
+  slides.push({data,text});
+  currentIdx=slides.length-1;
+  document.getElementById('slideCount').textContent=slides.length;
+  renderMain(currentIdx);
+  addThumb(currentIdx);
+}
+
+function renderMain(idx){
+  const c=document.getElementById('slideCanvas');
+  c.innerHTML=buildHTML(slides[idx].data,idx);
+  c.style.animation='none';c.offsetHeight;
+  c.style.animation='slideIn .45s cubic-bezier(.16,1,.3,1)';
+}
+
+function buildHTML(d,idx){
+  const t=THEMES[idx%THEMES.length];
+  switch(d.type){
+    case'bullets':return tBullets(d,t,idx);
+    case'stats':return tStats(d,t,idx);
+    case'quote':return tQuote(d,t,idx);
+    case'image':return tImage(d,t,idx);
+    default:return tTitle(d,t,idx);
   }
-  };
-  
-  const sendManual = () => {
-  const t = manualText.trim();
-  if (!t || isGeneratingRef.current) return;
-  setManualText(””);
-  addLog(t, “voice”);
-  triggerGenerate(t);
-  };
-  
-  const clearAll = () => {
-  setSlides([]); setCurrentIdx(-1); setTranscript([]);
-  accTextRef.current = “”;
-  if (isListening) toggleMic();
-  };
-  
-  const currentSlide = currentIdx >= 0 ? slides[currentIdx] : null;
-  
-  return (
-  
-    <div style={{
-      width:"100%", height:"100vh", background:"#080a0f", color:"#e8edf5",
-      fontFamily:"'DM Sans', 'Segoe UI', sans-serif",
-      display:"flex", flexDirection:"column", overflow:"hidden"
-    }}>
-      {/* HEADER */}
-      <div style={{
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        padding:"12px 24px", borderBottom:"1px solid #1e2530",
-        background:"rgba(13,17,23,0.95)", flexShrink:0
-      }}>
-        <div style={{
-          fontFamily:"'Bebas Neue', 'Impact', sans-serif", fontSize:"22px",
-          letterSpacing:"4px", background:"linear-gradient(90deg,#00e5ff,#7c3aed)",
-          WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent"
-        }}>
-          SLIDE<span style={{ background:"linear-gradient(90deg,#f59e0b,#ef4444)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>·LIVE</span>
-        </div>
-        <div style={{ display:"flex", gap:"20px", alignItems:"center" }}>
-          <span style={{ fontFamily:"monospace", fontSize:"11px", color:"#4a5568" }}>
-            SLIDES: <span style={{ color:"#00e5ff", fontWeight:700 }}>{slides.length}</span>
-          </span>
-          <span style={{ fontFamily:"monospace", fontSize:"11px", color:"#4a5568" }}>{sessionTime}</span>
-          {isGenerating && (
-            <div style={{ display:"flex", gap:"4px", alignItems:"center" }}>
-              {[0,1,2].map(i=>(
-                <div key={i} style={{
-                  width:"5px", height:"5px", borderRadius:"50%", background:"#00e5ff",
-                  animation:`pulse 1s ease-in-out ${i*0.2}s infinite`
-                }}/>
-              ))}
-              <span style={{ fontSize:"10px", color:"#00e5ff", letterSpacing:"2px", marginLeft:"4px" }}>GENERANDO</span>
-            </div>
-          )}
-        </div>
-      </div>
-  
-  ```
-  {/* MAIN */}
-  <div style={{ flex:1, display:"flex", overflow:"hidden" }}>
-  
-    {/* ── SLIDE AREA ── */}
-    <div style={{ flex:1, display:"flex", flexDirection:"column", padding:"20px", gap:"12px", overflow:"hidden" }}>
-      {/* Main slide */}
-      <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <div style={{
-          width:"100%", maxWidth:"780px", aspectRatio:"16/9",
-          borderRadius:"10px", overflow:"hidden",
-          border: isGenerating ? "1px solid #00e5ff" : "1px solid #1e2530",
-          boxShadow: isGenerating
-            ? "0 0 60px rgba(0,229,255,0.2), 0 20px 60px rgba(0,0,0,0.6)"
-            : "0 0 0px rgba(0,229,255,0), 0 20px 60px rgba(0,0,0,0.5)",
-          transition:"border 0.3s, box-shadow 0.3s",
-          position:"relative"
-        }}>
-          {currentSlide ? (
-            <div key={animKey} style={{
-              width:"100%", height:"100%",
-              animation:"slideIn 0.5s cubic-bezier(0.16,1,0.3,1)"
-            }}>
-              {renderSlide(currentSlide.data, currentIdx)}
-            </div>
-          ) : (
-            <div style={{
-              width:"100%", height:"100%", background:"#0d1117",
-              display:"flex", flexDirection:"column", alignItems:"center",
-              justifyContent:"center", gap:"12px", opacity:0.4
-            }}>
-              <div style={{ fontSize:"40px" }}>🎤</div>
-              <div style={{ fontFamily:"monospace", letterSpacing:"4px", fontSize:"14px", color:"#4a5568" }}>
-                PRONTO AD ASCOLTARE
-              </div>
-              <div style={{ fontSize:"12px", color:"#4a5568" }}>Parla oppure scrivi nel campo a destra</div>
-            </div>
-          )}
-          {/* Generating overlay */}
-          {isGenerating && (
-            <div style={{
-              position:"absolute", inset:0, background:"rgba(8,10,15,0.65)",
-              display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-              gap:"10px", backdropFilter:"blur(4px)"
-            }}>
-              <div style={{ display:"flex", gap:"6px" }}>
-                {[0,1,2].map(i=>(
-                  <div key={i} style={{
-                    width:"8px", height:"8px", borderRadius:"50%", background:"#00e5ff",
-                    animation:`pulse 1.2s ease-in-out ${i*0.2}s infinite`
-                  }}/>
-                ))}
-              </div>
-              <div style={{ fontFamily:"monospace", fontSize:"11px", letterSpacing:"3px", color:"#00e5ff" }}>
-                GENERANDO SLIDE
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-  
-      {/* Thumbnails */}
-      {slides.length > 0 && (
-        <div style={{
-          display:"flex", gap:"8px", overflowX:"auto",
-          padding:"4px 2px", flexShrink:0,
-          scrollbarWidth:"thin", scrollbarColor:"#1e2530 transparent"
-        }}>
-          {slides.map((s, i) => (
-            <Thumb key={i} slide={s} index={i} active={i===currentIdx} onClick={()=>{setCurrentIdx(i);setAnimKey(k=>k+1);}}/>
-          ))}
-        </div>
-      )}
+}
+
+function e(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function tTitle(d,t,idx){
+  const icon=TI[idx%TI.length];
+  return`<div style="width:100%;height:100%;background:${t.bg};display:flex;position:relative;overflow:hidden;font-family:'Segoe UI',sans-serif;">
+  <div style="width:8px;background:${t.accent};flex-shrink:0;box-shadow:0 0 28px ${t.accent}99;"></div>
+  <div style="position:absolute;right:-55px;top:-55px;width:270px;height:270px;border-radius:50%;background:${t.accent}18;border:2px solid ${t.accent}2e;"></div>
+  <div style="position:absolute;right:65px;bottom:-40px;width:150px;height:150px;border-radius:50%;background:${t.accent}0e;border:1px solid ${t.accent}1e;"></div>
+  <div style="flex:1;padding:34px 46px;display:flex;flex-direction:column;justify-content:center;z-index:1;">
+    <div style="display:inline-flex;align-items:center;background:${t.accent}22;border-radius:20px;padding:4px 14px;margin-bottom:16px;width:fit-content;border:1px solid ${t.accent}44;">
+      <span style="font-size:11px;color:${t.accent};font-weight:700;letter-spacing:2px;">${e(d.tag||'LIVE')}</span>
     </div>
-  
-    {/* ── RIGHT PANEL ── */}
-    <div style={{
-      width:"280px", borderLeft:"1px solid #1e2530",
-      background:"#0d1117", display:"flex", flexDirection:"column", flexShrink:0
-    }}>
-      {/* MIC */}
-      <div style={{ padding:"20px", borderBottom:"1px solid #1e2530", display:"flex", flexDirection:"column", alignItems:"center", gap:"12px" }}>
-        <div style={{
-          fontSize:"9px", letterSpacing:"3px", color:"#4a5568",
-          textTransform:"uppercase", fontFamily:"monospace", alignSelf:"flex-start"
-        }}>INPUT VOCALE</div>
-  
-        <div
-          onClick={hasSpeech ? toggleMic : undefined}
-          style={{
-            width:"70px", height:"70px", borderRadius:"50%",
-            background: isListening ? "rgba(0,229,255,0.1)" : "#080a0f",
-            border: isListening ? "2px solid #00e5ff" : "2px solid #1e2530",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            cursor: hasSpeech ? "pointer" : "default",
-            fontSize:"28px",
-            boxShadow: isListening ? "0 0 30px rgba(0,229,255,0.3)" : "none",
-            transition:"all 0.3s", position:"relative"
-          }}
-        >
-          {isListening ? "⏹" : "🎤"}
-        </div>
-  
-        {/* Waveform */}
-        <div style={{ display:"flex", gap:"3px", alignItems:"center", height:"28px" }}>
-          {Array(10).fill(0).map((_, i) => (
-            <div key={i} style={{
-              width:"3px", background:"#00e5ff", borderRadius:"2px",
-              height: isListening ? `${4 + Math.random()*20}px` : "4px",
-              opacity: isListening ? 0.8 : 0.2,
-              transition:"height 0.15s ease",
-              animation: isListening ? `wave 0.8s ease-in-out ${i*0.08}s infinite` : "none"
-            }}/>
-          ))}
-        </div>
-  
-        <div style={{
-          fontSize:"10px", letterSpacing:"2px", fontFamily:"monospace",
-          color: isListening ? "#00e5ff" : "#4a5568", textTransform:"uppercase"
-        }}>{micStatus}</div>
-      </div>
-  
-      {/* Manual input */}
-      <div style={{ padding:"10px 14px", borderBottom:"1px solid #1e2530", display:"flex", gap:"6px" }}>
-        <input
-          value={manualText}
-          onChange={e=>setManualText(e.target.value)}
-          onKeyDown={e=>e.key==="Enter"&&sendManual()}
-          placeholder="Oppure scrivi qui..."
-          style={{
-            flex:1, background:"#080a0f", border:"1px solid #1e2530",
-            color:"#e8edf5", padding:"7px 10px", borderRadius:"6px",
-            fontSize:"12px", outline:"none", fontFamily:"inherit"
-          }}
-        />
-        <button onClick={sendManual} style={{
-          background:"#00e5ff", color:"#000", border:"none",
-          padding:"7px 12px", borderRadius:"6px", cursor:"pointer",
-          fontSize:"13px", fontWeight:700
-        }}>→</button>
-      </div>
-  
-      {/* Log */}
-      <div style={{
-        fontSize:"9px", letterSpacing:"3px", color:"#4a5568",
-        fontFamily:"monospace", textTransform:"uppercase",
-        padding:"10px 14px 4px"
-      }}>LOG</div>
-      <div ref={transcriptRef} style={{
-        flex:1, overflowY:"auto", scrollbarWidth:"thin",
-        scrollbarColor:"#1e2530 transparent"
-      }}>
-        {transcript.map((e,i) => (
-          <div key={i} style={{
-            padding:"8px 14px", borderBottom:"1px solid rgba(30,37,48,0.4)"
-          }}>
-            <div style={{ display:"flex", gap:"6px", alignItems:"center", marginBottom:"3px" }}>
-              <span style={{ fontFamily:"monospace", fontSize:"8px", color:"#4a5568" }}>{e.time}</span>
-              <span style={{
-                fontSize:"7px", padding:"1px 5px", borderRadius:"3px", letterSpacing:"1px",
-                fontFamily:"monospace", textTransform:"uppercase",
-                background: e.type==="voice" ? "rgba(0,229,255,0.1)" : "rgba(124,58,237,0.15)",
-                color: e.type==="voice" ? "#00e5ff" : "#a78bfa"
-              }}>{e.type==="voice"?"VOCE":"SLIDE"}</span>
-            </div>
-            <div style={{ fontSize:"11px", color:"rgba(232,237,245,0.65)", lineHeight:1.4 }}>{e.text}</div>
-          </div>
-        ))}
-      </div>
-  
-      {/* Controls */}
-      <div style={{ display:"flex", gap:"6px", padding:"10px 14px", borderTop:"1px solid #1e2530" }}>
-        <button onClick={clearAll} style={{
-          flex:1, padding:"7px", background:"transparent",
-          border:"1px solid #1e2530", color:"#4a5568", borderRadius:"6px",
-          cursor:"pointer", fontSize:"9px", letterSpacing:"1px",
-          fontFamily:"monospace", textTransform:"uppercase"
-        }}>RESET</button>
-      </div>
-    </div>
+    <div style="font-size:clamp(20px,3.8vw,40px);font-weight:800;color:${t.text};line-height:1.1;margin-bottom:13px;">${e(d.title)}</div>
+    ${d.subtitle?`<div style="font-size:clamp(11px,1.4vw,15px);color:${t.text}bb;line-height:1.6;max-width:460px;">${e(d.subtitle)}</div>`:''}
+    <div style="margin-top:22px;font-size:28px;">${icon}</div>
   </div>
-  
-  <style>{`
-    @keyframes slideIn {
-      from { opacity:0; transform:translateY(16px) scale(0.97); }
-      to   { opacity:1; transform:translateY(0) scale(1); }
-    }
-    @keyframes pulse {
-      0%,100% { transform:scale(0.6); opacity:0.3; }
-      50%      { transform:scale(1);   opacity:1; }
-    }
-    @keyframes wave {
-      0%,100% { height:4px; }
-      50%      { height:20px; }
-    }
-    * { box-sizing:border-box; }
-    ::-webkit-scrollbar { width:4px; height:4px; }
-    ::-webkit-scrollbar-track { background:transparent; }
-    ::-webkit-scrollbar-thumb { background:#1e2530; border-radius:2px; }
-  `}</style>
-  ```
-  
-    </div>
-  );
+  <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,${t.accent},${t.accent}00);"></div>
+</div>`;}
 
+function tBullets(d,t,idx){
+  const bullets=(d.bullets||[]).slice(0,4);
+  const rows=bullets.map((b,i)=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;">
+      <div style="width:26px;height:26px;border-radius:7px;flex-shrink:0;background:${t.accent}22;border:1px solid ${t.accent}44;display:flex;align-items:center;justify-content:center;font-size:12px;color:${t.accent};font-weight:700;margin-top:2px;">${BI[i%BI.length]}</div>
+      <div style="font-size:clamp(11px,1.3vw,14px);color:${t.text}dd;line-height:1.5;padding-top:4px;">${e(b)}</div>
+    </div>`).join('');
+  return`<div style="width:100%;height:100%;background:${t.bg};display:flex;flex-direction:column;overflow:hidden;font-family:'Segoe UI',sans-serif;position:relative;">
+  <div style="position:absolute;top:0;left:0;right:0;height:66px;background:linear-gradient(135deg,${t.accent},${t.accent2});z-index:0;"></div>
+  <div style="position:absolute;top:46px;left:0;right:0;height:34px;background:${t.bg};clip-path:polygon(0 34px,100% 0,100% 34px,0 34px);z-index:1;"></div>
+  <div style="flex:1;display:flex;flex-direction:column;z-index:2;">
+    <div style="padding:12px 36px 0;height:66px;display:flex;align-items:center;gap:10px;">
+      <div style="width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:14px;">📋</div>
+      <div style="font-size:clamp(12px,1.7vw,18px);font-weight:800;color:#fff;letter-spacing:.3px;">${e(d.title)}</div>
+    </div>
+    <div style="flex:1;padding:16px 36px;display:flex;flex-direction:column;justify-content:center;gap:10px;">${rows}</div>
+  </div>
+  <div style="position:absolute;right:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,${t.accent},transparent);"></div>
+</div>`;}
+
+function tStats(d,t,idx){
+  const stats=(d.stats||[]).slice(0,3);
+  const cards=stats.map((s,i)=>`
+    <div style="flex:1;min-width:88px;max-width:150px;background:${t.accent2}cc;border:1px solid ${t.accent}44;border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 4px 18px ${t.accent}1e;">
+      <div style="font-size:11px;margin-bottom:7px;">${SI[i%SI.length]}</div>
+      <div style="font-size:clamp(22px,3.5vw,38px);font-weight:900;color:${t.accent};line-height:1;">${e(s.value)}</div>
+      <div style="font-size:9px;color:${t.text}88;letter-spacing:1.5px;margin-top:6px;text-transform:uppercase;">${e(s.label)}</div>
+    </div>`).join('');
+  return`<div style="width:100%;height:100%;background:${t.bg};display:flex;flex-direction:column;overflow:hidden;font-family:'Segoe UI',sans-serif;position:relative;">
+  <div style="position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,${t.accent}15 0%,transparent 55%),radial-gradient(circle at 20% 80%,${t.accent2}55 0%,transparent 55%);"></div>
+  <div style="padding:18px 36px 12px;border-bottom:1px solid ${t.accent}28;display:flex;align-items:center;gap:10px;z-index:1;">
+    <div style="width:4px;height:26px;background:${t.accent};border-radius:2px;box-shadow:0 0 10px ${t.accent};"></div>
+    <div style="font-size:clamp(13px,1.9vw,20px);font-weight:800;color:${t.text};">${e(d.title)}</div>
+    <div style="margin-left:auto;font-size:10px;color:${t.accent};letter-spacing:2px;font-weight:700;">${e(d.tag||'DATI')}</div>
+  </div>
+  <div style="flex:1;padding:12px 26px;display:flex;align-items:center;justify-content:center;gap:12px;z-index:1;flex-wrap:wrap;">${cards}</div>
+</div>`;}
+
+function tQuote(d,t,idx){
+  const quote=d.quote||d.title;
+  const author=(d.quote&&d.title)?d.title:null;
+  return`<div style="width:100%;height:100%;background:linear-gradient(135deg,${t.bg} 0%,${t.accent2} 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;font-family:Georgia,serif;padding:36px 52px;position:relative;text-align:center;">
+  <div style="position:absolute;top:-10px;left:12px;font-size:150px;color:${t.accent}18;font-weight:900;line-height:1;user-select:none;">"</div>
+  <div style="position:absolute;bottom:-38px;right:12px;font-size:150px;color:${t.accent}18;font-weight:900;line-height:1;user-select:none;">"</div>
+  <div style="font-size:10px;letter-spacing:3px;color:${t.accent};font-family:'Segoe UI',sans-serif;font-weight:700;margin-bottom:16px;text-transform:uppercase;">${e(d.tag||'CITAZIONE')}</div>
+  <div style="font-size:clamp(14px,2vw,21px);color:${t.text};line-height:1.65;font-style:italic;max-width:500px;z-index:1;">"${e(quote)}"</div>
+  <div style="width:50px;height:3px;background:${t.accent};border-radius:2px;margin:16px auto;box-shadow:0 0 10px ${t.accent};"></div>
+  ${author?`<div style="font-size:12px;color:${t.text}88;font-family:'Segoe UI',sans-serif;letter-spacing:1px;">— ${e(author)}</div>`:''}
+</div>`;}
+
+function tImage(d,t,idx){
+  const emoji=II[idx%II.length];
+  const bullets=(d.bullets||[]).slice(0,3).map(b=>`
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
+      <div style="width:6px;height:6px;border-radius:50%;background:${t.accent};flex-shrink:0;"></div>
+      <div style="font-size:clamp(10px,1.15vw,13px);color:${t.text}cc;">${e(b)}</div>
+    </div>`).join('');
+  return`<div style="width:100%;height:100%;background:${t.bg};display:flex;overflow:hidden;font-family:'Segoe UI',sans-serif;">
+  <div style="width:38%;background:linear-gradient(160deg,${t.accent},${t.accent2});display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;flex-shrink:0;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-28px;left:-28px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.1);"></div>
+    <div style="position:absolute;bottom:-18px;right:-18px;width:75px;height:75px;border-radius:50%;background:rgba(255,255,255,.08);"></div>
+    <div style="font-size:48px;z-index:1;">${emoji}</div>
+    <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.7);font-weight:700;text-transform:uppercase;z-index:1;">${e(d.tag||'LIVE')}</div>
+  </div>
+  <div style="flex:1;padding:24px 28px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:clamp(14px,2.1vw,21px);font-weight:800;color:${t.text};margin-bottom:11px;line-height:1.2;">${e(d.title)}</div>
+    ${d.subtitle?`<div style="font-size:clamp(10px,1.2vw,13px);color:${t.text}aa;line-height:1.6;margin-bottom:13px;">${e(d.subtitle)}</div>`:''}
+    ${bullets}
+  </div>
+</div>`;}
+
+function addThumb(idx){
+  const container=document.getElementById('thumbs');
+  container.querySelectorAll('.thumb').forEach(el=>el.classList.remove('active'));
+  const wrap=document.createElement('div');
+  wrap.className='thumb active';
+  wrap.id='thumb-'+idx;
+  wrap.onclick=()=>selectSlide(idx);
+  const prev=document.createElement('div');
+  prev.className='tprev';
+  const scale=document.createElement('div');
+  scale.className='tscale';
+  scale.innerHTML=buildHTML(slides[idx].data,idx);
+  prev.appendChild(scale);
+  wrap.appendChild(prev);
+  const num=document.createElement('div');
+  num.className='tnum';num.textContent=idx+1;
+  wrap.appendChild(num);
+  container.appendChild(wrap);
+  wrap.scrollIntoView({behavior:'smooth',inline:'end',block:'nearest'});
 }
+
+function selectSlide(idx){
+  currentIdx=idx;renderMain(idx);
+  document.querySelectorAll('.thumb').forEach((el,i)=>el.classList.toggle('active',i===idx));
+}
+
+function addLog(text,type){
+  const box=document.getElementById('logBox');
+  const now=new Date();
+  const time=[now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
+  const el=document.createElement('div');el.className='logEntry';
+  el.innerHTML=`<div class="logMeta"><span class="logTime">${time}</span><span class="logBadge ${type}">${type==='voice'?'VOCE':'SLIDE'}</span></div><div class="logText">${e(text)}</div>`;
+  box.appendChild(el);box.scrollTop=99999;
+}
+
+function clearAll(){
+  slides=[];currentIdx=-1;accText='';
+  document.getElementById('slideCount').textContent='0';
+  document.getElementById('slideCanvas').innerHTML=`<div id="emptyState"><div class="ei">🎤</div><div class="et">PRONTO AD ASCOLTARE</div><div class="es">Parla o scrivi per generare una slide</div></div>`;
+  document.getElementById('thumbs').innerHTML='';
+  document.getElementById('logBox').innerHTML='';
+  if(isListening)stopMic();
+}
+
+// CSS keyframe inject
+const st=document.createElement('style');
+st.textContent='@keyframes slideIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}';
+document.head.appendChild(st);
+</script>
+
+</body>
+</html>
