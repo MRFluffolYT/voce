@@ -1,1129 +1,761 @@
-<!DOCTYPE html>
-
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SLIDE LIVE</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #080a0f;
-    --panel: #0d1117;
-    --border: #1e2530;
-    --accent: #00e5ff;
-    --accent2: #7c3aed;
-    --accent3: #f59e0b;
-    --text: #e8edf5;
-    --muted: #4a5568;
-    --slide-bg: #0d1117;
-    --red: #ef4444;
-  }
-
-- { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-background: var(–bg);
-color: var(–text);
-font-family: ‘DM Sans’, sans-serif;
-height: 100vh;
-overflow: hidden;
-display: flex;
-flex-direction: column;
-}
-
-/* HEADER */
-header {
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 16px 28px;
-border-bottom: 1px solid var(–border);
-background: rgba(13,17,23,0.95);
-backdrop-filter: blur(12px);
-z-index: 100;
-flex-shrink: 0;
-}
-
-.logo {
-font-family: ‘Bebas Neue’, sans-serif;
-font-size: 26px;
-letter-spacing: 4px;
-background: linear-gradient(90deg, var(–accent), var(–accent2));
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-}
-
-.logo span {
-background: linear-gradient(90deg, var(–accent3), var(–red));
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-}
-
-.status-bar {
-display: flex;
-align-items: center;
-gap: 20px;
-}
-
-.slide-count {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 12px;
-color: var(–muted);
-}
-
-.slide-count span {
-color: var(–accent);
-font-weight: 700;
-}
-
-/* MAIN LAYOUT */
-.main {
-display: flex;
-flex: 1;
-overflow: hidden;
-}
-
-/* LEFT: SLIDE DISPLAY */
-.slide-area {
-flex: 1;
-display: flex;
-flex-direction: column;
-padding: 24px;
-gap: 16px;
-overflow: hidden;
-position: relative;
-}
-
-.slide-stage {
-flex: 1;
-display: flex;
-align-items: center;
-justify-content: center;
-position: relative;
-}
-
-.slide-frame {
-width: 100%;
-max-width: 780px;
-aspect-ratio: 16/9;
-background: var(–slide-bg);
-border: 1px solid var(–border);
-border-radius: 12px;
-overflow: hidden;
-position: relative;
-box-shadow: 0 0 60px rgba(0,229,255,0.06), 0 24px 80px rgba(0,0,0,0.6);
-transition: all 0.4s ease;
-}
-
-.slide-frame.generating {
-border-color: var(–accent);
-box-shadow: 0 0 80px rgba(0,229,255,0.15), 0 24px 80px rgba(0,0,0,0.6);
-}
-
-/* SLIDE CONTENT TYPES */
-.slide-inner {
-width: 100%;
-height: 100%;
-padding: 40px 52px;
-display: flex;
-flex-direction: column;
-justify-content: center;
-position: relative;
-overflow: hidden;
-animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideIn {
-from { opacity: 0; transform: translateY(20px) scale(0.97); }
-to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.slide-inner::before {
-content: ‘’;
-position: absolute;
-top: 0; left: 0; right: 0;
-height: 3px;
-background: linear-gradient(90deg, var(–accent), var(–accent2), transparent);
-}
-
-.slide-tag {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-letter-spacing: 3px;
-color: var(–accent);
-text-transform: uppercase;
-margin-bottom: 16px;
-opacity: 0.7;
-}
-
-.slide-title {
-font-family: ‘Bebas Neue’, sans-serif;
-font-size: clamp(28px, 4.5vw, 52px);
-letter-spacing: 2px;
-line-height: 1.05;
-color: #fff;
-margin-bottom: 20px;
-}
-
-.slide-subtitle {
-font-size: clamp(13px, 1.4vw, 17px);
-color: rgba(232,237,245,0.65);
-line-height: 1.65;
-font-weight: 300;
-max-width: 520px;
-}
-
-.slide-bullets {
-list-style: none;
-display: flex;
-flex-direction: column;
-gap: 12px;
-margin-top: 8px;
-}
-
-.slide-bullets li {
-display: flex;
-align-items: flex-start;
-gap: 12px;
-font-size: clamp(12px, 1.3vw, 15px);
-color: rgba(232,237,245,0.8);
-line-height: 1.5;
-}
-
-.slide-bullets li::before {
-content: ‘▸’;
-color: var(–accent);
-flex-shrink: 0;
-margin-top: 1px;
-}
-
-.slide-stat {
-display: flex;
-gap: 36px;
-margin-top: 12px;
-flex-wrap: wrap;
-}
-
-.stat-item {
-display: flex;
-flex-direction: column;
-gap: 4px;
-}
-
-.stat-value {
-font-family: ‘Bebas Neue’, sans-serif;
-font-size: clamp(28px, 3.5vw, 44px);
-color: var(–accent);
-letter-spacing: 2px;
-}
-
-.stat-label {
-font-size: 11px;
-color: var(–muted);
-text-transform: uppercase;
-letter-spacing: 2px;
-}
-
-/* Decorative bg shapes */
-.slide-deco {
-position: absolute;
-border-radius: 50%;
-pointer-events: none;
-}
-.deco-1 {
-width: 220px; height: 220px;
-background: radial-gradient(circle, rgba(0,229,255,0.07) 0%, transparent 70%);
-right: -40px; top: -40px;
-}
-.deco-2 {
-width: 160px; height: 160px;
-background: radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%);
-left: -20px; bottom: -20px;
-}
-
-/* EMPTY STATE */
-.empty-state {
-width: 100%; height: 100%;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-gap: 16px;
-opacity: 0.35;
-}
-
-.empty-icon {
-font-size: 48px;
-filter: grayscale(1);
-}
-
-.empty-text {
-font-family: ‘Bebas Neue’, sans-serif;
-font-size: 20px;
-letter-spacing: 4px;
-color: var(–muted);
-}
-
-.empty-sub {
-font-size: 13px;
-color: var(–muted);
-}
-
-/* GENERATING OVERLAY */
-.generating-overlay {
-position: absolute;
-inset: 0;
-background: rgba(8,10,15,0.7);
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 12px;
-backdrop-filter: blur(4px);
-border-radius: 12px;
-opacity: 0;
-pointer-events: none;
-transition: opacity 0.3s;
-flex-direction: column;
-}
-
-.generating-overlay.active {
-opacity: 1;
-pointer-events: auto;
-}
-
-.gen-text {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 12px;
-letter-spacing: 3px;
-color: var(–accent);
-text-transform: uppercase;
-}
-
-.gen-dots {
-display: flex; gap: 6px;
-}
-
-.gen-dot {
-width: 6px; height: 6px;
-border-radius: 50%;
-background: var(–accent);
-animation: pulse 1.2s ease-in-out infinite;
-}
-
-.gen-dot:nth-child(2) { animation-delay: 0.2s; }
-.gen-dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes pulse {
-0%, 100% { transform: scale(0.6); opacity: 0.3; }
-50% { transform: scale(1); opacity: 1; }
-}
-
-/* SLIDE THUMBNAILS */
-.thumbnails {
-display: flex;
-gap: 10px;
-overflow-x: auto;
-padding: 8px 2px;
-flex-shrink: 0;
-scrollbar-width: thin;
-scrollbar-color: var(–border) transparent;
-}
-
-.thumb {
-flex-shrink: 0;
-width: 120px;
-height: 68px;
-background: var(–panel);
-border: 1px solid var(–border);
-border-radius: 6px;
-cursor: pointer;
-overflow: hidden;
-position: relative;
-transition: all 0.2s;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 9px;
-padding: 8px;
-text-align: center;
-color: var(–muted);
-font-family: ‘DM Sans’, sans-serif;
-line-height: 1.4;
-}
-
-.thumb:hover { border-color: var(–accent); transform: translateY(-2px); }
-.thumb.active { border-color: var(–accent); box-shadow: 0 0 16px rgba(0,229,255,0.2); }
-
-.thumb::before {
-content: ‘’;
-position: absolute;
-top: 0; left: 0; right: 0;
-height: 2px;
-background: linear-gradient(90deg, var(–accent), var(–accent2));
-opacity: 0;
-transition: opacity 0.2s;
-}
-
-.thumb.active::before, .thumb:hover::before { opacity: 1; }
-
-.thumb-num {
-position: absolute;
-top: 4px; right: 6px;
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 8px;
-color: var(–accent);
-opacity: 0.6;
-}
-
-/* RIGHT PANEL */
-.right-panel {
-width: 320px;
-border-left: 1px solid var(–border);
-display: flex;
-flex-direction: column;
-background: var(–panel);
-flex-shrink: 0;
-}
-
-.panel-section {
-padding: 20px 20px 16px;
-border-bottom: 1px solid var(–border);
-}
-
-.panel-label {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-letter-spacing: 3px;
-color: var(–muted);
-text-transform: uppercase;
-margin-bottom: 14px;
-}
-
-/* MIC BUTTON */
-.mic-area {
-display: flex;
-flex-direction: column;
-align-items: center;
-gap: 16px;
-padding: 24px 20px;
-}
-
-.mic-btn {
-width: 80px; height: 80px;
-border-radius: 50%;
-background: var(–bg);
-border: 2px solid var(–border);
-display: flex;
-align-items: center;
-justify-content: center;
-cursor: pointer;
-transition: all 0.3s ease;
-position: relative;
-font-size: 28px;
-}
-
-.mic-btn::before, .mic-btn::after {
-content: ‘’;
-position: absolute;
-inset: -8px;
-border-radius: 50%;
-border: 1px solid var(–accent);
-opacity: 0;
-animation: ripple 2s ease-out infinite;
-}
-
-.mic-btn::after { animation-delay: 0.7s; }
-
-@keyframes ripple {
-0% { transform: scale(0.8); opacity: 0; }
-40% { opacity: 0.4; }
-100% { transform: scale(1.5); opacity: 0; }
-}
-
-.mic-btn.listening {
-border-color: var(–accent);
-background: rgba(0,229,255,0.08);
-box-shadow: 0 0 40px rgba(0,229,255,0.2);
-}
-
-.mic-btn.listening::before, .mic-btn.listening::after {
-border-color: var(–accent);
-opacity: 1;
-}
-
-.mic-status {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 11px;
-letter-spacing: 2px;
-color: var(–muted);
-text-align: center;
-text-transform: uppercase;
-}
-
-.mic-status.active { color: var(–accent); }
-.mic-status.error { color: var(–red); }
-
-/* WAVEFORM */
-.waveform {
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 3px;
-height: 36px;
-}
-
-.wave-bar {
-width: 3px;
-background: var(–accent);
-border-radius: 2px;
-height: 4px;
-opacity: 0.3;
-transition: height 0.1s ease;
-}
-
-.waveform.active .wave-bar {
-opacity: 0.8;
-animation: wave 0.8s ease-in-out infinite;
-}
-
-.waveform.active .wave-bar:nth-child(1) { animation-delay: 0s; }
-.waveform.active .wave-bar:nth-child(2) { animation-delay: 0.1s; }
-.waveform.active .wave-bar:nth-child(3) { animation-delay: 0.2s; }
-.waveform.active .wave-bar:nth-child(4) { animation-delay: 0.1s; }
-.waveform.active .wave-bar:nth-child(5) { animation-delay: 0.05s; }
-.waveform.active .wave-bar:nth-child(6) { animation-delay: 0.15s; }
-.waveform.active .wave-bar:nth-child(7) { animation-delay: 0.25s; }
-.waveform.active .wave-bar:nth-child(8) { animation-delay: 0.1s; }
-.waveform.active .wave-bar:nth-child(9) { animation-delay: 0.2s; }
-.waveform.active .wave-bar:nth-child(10) { animation-delay: 0.05s; }
-
-@keyframes wave {
-0%, 100% { height: 4px; }
-50% { height: 24px; }
-}
-
-/* TRANSCRIPT */
-.transcript-box {
-flex: 1;
-overflow-y: auto;
-display: flex;
-flex-direction: column;
-gap: 0;
-scrollbar-width: thin;
-scrollbar-color: var(–border) transparent;
-}
-
-.transcript-entry {
-padding: 12px 20px;
-border-bottom: 1px solid rgba(30,37,48,0.5);
-transition: background 0.2s;
-}
-
-.transcript-entry:hover { background: rgba(255,255,255,0.02); }
-
-.t-meta {
-display: flex;
-align-items: center;
-gap: 8px;
-margin-bottom: 5px;
-}
-
-.t-time {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 9px;
-color: var(–muted);
-}
-
-.t-badge {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 8px;
-letter-spacing: 1px;
-padding: 2px 6px;
-border-radius: 3px;
-text-transform: uppercase;
-}
-
-.t-badge.voice { background: rgba(0,229,255,0.1); color: var(–accent); }
-.t-badge.slide { background: rgba(124,58,237,0.15); color: #a78bfa; }
-
-.t-text {
-font-size: 12px;
-color: rgba(232,237,245,0.7);
-line-height: 1.5;
-}
-
-/* CONTROLS */
-.controls {
-display: flex;
-gap: 8px;
-padding: 12px 20px;
-border-top: 1px solid var(–border);
-}
-
-.ctrl-btn {
-flex: 1;
-padding: 8px 12px;
-background: transparent;
-border: 1px solid var(–border);
-color: var(–muted);
-border-radius: 6px;
-cursor: pointer;
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-letter-spacing: 1px;
-text-transform: uppercase;
-transition: all 0.2s;
-}
-
-.ctrl-btn:hover {
-border-color: var(–accent2);
-color: #a78bfa;
-background: rgba(124,58,237,0.08);
-}
-
-.ctrl-btn.danger:hover {
-border-color: var(–red);
-color: var(–red);
-background: rgba(239,68,68,0.08);
-}
-
-/* SCANNING LINE EFFECT */
-@keyframes scan {
-0% { transform: translateY(-100%); }
-100% { transform: translateY(100vh); }
-}
-
-.scan-line {
-position: fixed;
-left: 0; right: 0;
-height: 1px;
-background: linear-gradient(90deg, transparent, rgba(0,229,255,0.15), transparent);
-pointer-events: none;
-animation: scan 4s linear infinite;
-z-index: 1000;
-}
-
-/* Noise overlay */
-body::after {
-content: ‘’;
-position: fixed;
-inset: 0;
-background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 256 256’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘noise’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23noise)’/%3E%3C/svg%3E”);
-opacity: 0.025;
-pointer-events: none;
-z-index: 999;
-}
-
-/* Tooltip */
-.tooltip {
-position: fixed;
-bottom: 20px;
-left: 50%;
-transform: translateX(-50%);
-background: rgba(0,229,255,0.1);
-border: 1px solid var(–accent);
-color: var(–accent);
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 11px;
-padding: 8px 16px;
-border-radius: 6px;
-letter-spacing: 1px;
-pointer-events: none;
-opacity: 0;
-transition: opacity 0.3s;
-z-index: 500;
-white-space: nowrap;
-}
-
-.tooltip.show { opacity: 1; }
-
-/* No speech API fallback */
-.no-speech {
-display: none;
-padding: 20px;
-text-align: center;
-color: var(–red);
-font-size: 13px;
-line-height: 1.6;
-}
-
-.manual-input {
-display: flex;
-gap: 8px;
-padding: 12px 20px;
-border-bottom: 1px solid var(–border);
-}
-
-.manual-input input {
-flex: 1;
-background: var(–bg);
-border: 1px solid var(–border);
-color: var(–text);
-padding: 8px 12px;
-border-radius: 6px;
-font-family: ‘DM Sans’, sans-serif;
-font-size: 13px;
-outline: none;
-transition: border-color 0.2s;
-}
-
-.manual-input input:focus { border-color: var(–accent); }
-
-.manual-input button {
-background: var(–accent);
-color: #000;
-border: none;
-padding: 8px 14px;
-border-radius: 6px;
-cursor: pointer;
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 11px;
-font-weight: 700;
-transition: opacity 0.2s;
-}
-
-.manual-input button:hover { opacity: 0.8; }
-</style>
-
-</head>
-<body>
-
-<div class="scan-line"></div>
-
-<header>
-  <div class="logo">SLIDE<span>·LIVE</span></div>
-  <div class="status-bar">
-    <div class="slide-count">SLIDES: <span id="slideCountDisplay">0</span></div>
-    <div class="slide-count" id="sessionTime">00:00</div>
-  </div>
-</header>
-
-<div class="main">
-  <!-- LEFT: SLIDE AREA -->
-  <div class="slide-area">
-    <div class="slide-stage">
-      <div class="slide-frame" id="slideFrame">
-        <div class="slide-inner" id="slideContent">
-          <div class="empty-state">
-            <div class="empty-icon">🎤</div>
-            <div class="empty-text">PRONTO AD ASCOLTARE</div>
-            <div class="empty-sub">Premi il microfono e inizia a parlare</div>
-          </div>
-        </div>
-        <div class="generating-overlay" id="genOverlay">
-          <div class="gen-text">GENERANDO SLIDE</div>
-          <div class="gen-dots">
-            <div class="gen-dot"></div>
-            <div class="gen-dot"></div>
-            <div class="gen-dot"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-```
-<!-- THUMBNAILS -->
-<div class="thumbnails" id="thumbsContainer"></div>
-```
-
-  </div>
-
-  <!-- RIGHT PANEL -->
-
-  <div class="right-panel">
-    <!-- MIC -->
-    <div class="panel-section">
-      <div class="panel-label">INPUT VOCALE</div>
-      <div class="mic-area">
-        <div class="mic-btn" id="micBtn" onclick="toggleListening()">🎤</div>
-        <div class="waveform" id="waveform">
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
-        </div>
-        <div class="mic-status" id="micStatus">PREMI PER PARLARE</div>
-      </div>
-    </div>
-
-```
-<!-- MANUAL INPUT (always visible) -->
-<div class="manual-input">
-  <input type="text" id="manualText" placeholder="Oppure scrivi qui..." onkeydown="if(event.key==='Enter') sendManual()" />
-  <button onclick="sendManual()">→</button>
+import { useState, useEffect, useRef, useCallback } from “react”;
+
+const GROQ_API_KEY = “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”;
+const GROQ_MODEL = “llama-3.3-70b-versatile”;
+
+const THEMES = [
+{ bg: “#1a1a2e”, accent: “#e94560”, accent2: “#16213e”, text: “#fff”, sidebar: “#e94560” },
+{ bg: “#0a3d62”, accent: “#f9ca24”, accent2: “#0c2461”, text: “#fff”, sidebar: “#f9ca24” },
+{ bg: “#1e272e”, accent: “#00d2d3”, accent2: “#222f3e”, text: “#fff”, sidebar: “#00d2d3” },
+{ bg: “#6c5ce7”, accent: “#fdcb6e”, accent2: “#5f27cd”, text: “#fff”, sidebar: “#fdcb6e” },
+{ bg: “#fff”, accent: “#6c5ce7”, accent2: “#f1f2f6”, text: “#2d3436”, sidebar: “#6c5ce7” },
+{ bg: “#2d3436”, accent: “#00cec9”, accent2: “#353b48”, text: “#fff”, sidebar: “#00cec9” },
+{ bg: “#fff”, accent: “#e17055”, accent2: “#f8f9fa”, text: “#2d3436”, sidebar: “#e17055” },
+{ bg: “#0f0c29”, accent: “#a29bfe”, accent2: “#302b63”, text: “#fff”, sidebar: “#a29bfe” },
+];
+
+const ICONS = {
+bullets: [“◆”,“▸”,“●”,“★”,“→”,“✦”,“►”,“◉”],
+stats:   [“📈”,“🎯”,“⚡”,“🔥”,“💡”,“🚀”,“💎”,“📊”],
+};
+
+function pickTheme(idx) { return THEMES[idx % THEMES.length]; }
+
+// ─── SLIDE RENDERERS ──────────────────────────────────────────────────────────
+
+function SlideTitle({ data, theme, idx }) {
+const icon = [“🚀”,“💡”,“🎯”,“⚡”,“🌟”,“🔥”,“💎”,“🎨”][idx % 8];
+return (
+<div style={{
+width:“100%”, height:“100%”, background: theme.bg,
+display:“flex”, position:“relative”, overflow:“hidden”, fontFamily:”‘Segoe UI’,sans-serif”
+}}>
+{/* Left colored sidebar */}
+<div style={{
+width:“8px”, background: theme.accent, flexShrink:0,
+boxShadow:`0 0 30px ${theme.accent}88`
+}}/>
+{/* Big decorative circle */}
+<div style={{
+position:“absolute”, right:”-60px”, top:”-60px”,
+width:“280px”, height:“280px”, borderRadius:“50%”,
+background: theme.accent + “18”, border: `2px solid ${theme.accent}30`
+}}/>
+<div style={{
+position:“absolute”, right:“60px”, bottom:”-40px”,
+width:“160px”, height:“160px”, borderRadius:“50%”,
+background: theme.accent + “10”, border: `1px solid ${theme.accent}20`
+}}/>
+{/* Content */}
+<div style={{ flex:1, padding:“40px 50px”, display:“flex”, flexDirection:“column”, justifyContent:“center”, zIndex:1 }}>
+<div style={{
+display:“inline-flex”, alignItems:“center”, gap:“8px”,
+background: theme.accent + “22”, borderRadius:“20px”,
+padding:“4px 14px”, marginBottom:“20px”, width:“fit-content”,
+border:`1px solid ${theme.accent}44`
+}}>
+<span style={{ fontSize:“11px”, color: theme.accent, fontWeight:700, letterSpacing:“2px” }}>
+{data.tag || “SLIDE LIVE”}
+</span>
 </div>
-
-<!-- TRANSCRIPT -->
-<div class="panel-label" style="padding: 14px 20px 0; font-family: 'JetBrains Mono'; font-size:10px; letter-spacing:3px; color: var(--muted); text-transform:uppercase;">LOG</div>
-<div class="transcript-box" id="transcriptBox"></div>
-
-<!-- CONTROLS -->
-<div class="controls">
-  <button class="ctrl-btn" onclick="exportSlides()">ESPORTA</button>
-  <button class="ctrl-btn danger" onclick="clearAll()">RESET</button>
+<div style={{ fontSize:“clamp(22px,4vw,42px)”, fontWeight:800, color: theme.text, lineHeight:1.1, marginBottom:“16px” }}>
+{data.title}
 </div>
+{data.subtitle && (
+<div style={{ fontSize:“clamp(11px,1.6vw,16px)”, color: theme.text + “bb”, lineHeight:1.6, maxWidth:“460px” }}>
+{data.subtitle}
+</div>
+)}
+<div style={{ marginTop:“28px”, fontSize:“32px” }}>{icon}</div>
+</div>
+{/* Bottom accent line */}
+<div style={{
+position:“absolute”, bottom:0, left:0, right:0, height:“4px”,
+background:`linear-gradient(90deg, ${theme.accent}, ${theme.accent}00)`
+}}/>
+</div>
+);
+}
+
+function SlideBullets({ data, theme, idx }) {
+const bullets = data.bullets || [];
+const iconSet = ICONS.bullets;
+return (
+<div style={{
+width:“100%”, height:“100%”, background: theme.bg,
+display:“flex”, overflow:“hidden”, fontFamily:”‘Segoe UI’,sans-serif”, position:“relative”
+}}>
+{/* Colored header band */}
+<div style={{
+position:“absolute”, top:0, left:0, right:0, height:“70px”,
+background:`linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`,
+zIndex:0
+}}/>
+{/* Diagonal cut */}
+<div style={{
+position:“absolute”, top:“50px”, left:0, right:0, height:“40px”,
+background: theme.bg,
+clipPath:“polygon(0 40px, 100% 0, 100% 40px, 0 40px)”,
+zIndex:1
+}}/>
+{/* Content */}
+<div style={{ flex:1, padding:“0”, display:“flex”, flexDirection:“column”, zIndex:2 }}>
+{/* Header */}
+<div style={{ padding:“14px 40px 0”, height:“70px”, display:“flex”, alignItems:“center”, gap:“12px” }}>
+<div style={{
+width:“32px”, height:“32px”, borderRadius:“8px”,
+background:“rgba(255,255,255,0.25)”, display:“flex”, alignItems:“center”,
+justifyContent:“center”, fontSize:“16px”
+}}>📋</div>
+<div style={{ fontSize:“clamp(12px,1.8vw,18px)”, fontWeight:800, color:”#fff”, letterSpacing:“0.5px” }}>
+{data.title}
+</div>
+</div>
+{/* Bullets */}
+<div style={{ flex:1, padding:“24px 40px”, display:“flex”, flexDirection:“column”, justifyContent:“center”, gap:“12px” }}>
+{bullets.map((b, i) => (
+<div key={i} style={{ display:“flex”, alignItems:“flex-start”, gap:“12px” }}>
+<div style={{
+width:“28px”, height:“28px”, borderRadius:“8px”, flexShrink:0,
+background: theme.accent + “22”, border:`1px solid ${theme.accent}44`,
+display:“flex”, alignItems:“center”, justifyContent:“center”,
+fontSize:“12px”, color: theme.accent, fontWeight:700, marginTop:“1px”
+}}>
+{iconSet[i % iconSet.length]}
+</div>
+<div style={{ fontSize:“clamp(11px,1.4vw,14px)”, color: theme.text + “dd”, lineHeight:1.5, paddingTop:“4px” }}>
+{b}
+</div>
+</div>
+))}
+</div>
+</div>
+{/* Right decorative stripe */}
+<div style={{ width:“6px”, background:`linear-gradient(180deg, ${theme.accent}, transparent)`, flexShrink:0 }}/>
+</div>
+);
+}
+
+function SlideStats({ data, theme, idx }) {
+const stats = data.stats || [];
+return (
+<div style={{
+width:“100%”, height:“100%”, background: theme.bg,
+display:“flex”, flexDirection:“column”, overflow:“hidden”,
+fontFamily:”‘Segoe UI’,sans-serif”, position:“relative”
+}}>
+{/* Background pattern */}
+<div style={{
+position:“absolute”, inset:0,
+backgroundImage:`radial-gradient(circle at 80% 20%, ${theme.accent}15 0%, transparent 50%), radial-gradient(circle at 20% 80%, ${theme.accent2}40 0%, transparent 50%)`
+}}/>
+{/* Top bar */}
+<div style={{
+padding:“20px 40px 12px”, borderBottom:`1px solid ${theme.accent}30`,
+display:“flex”, alignItems:“center”, gap:“12px”, zIndex:1
+}}>
+<div style={{
+width:“4px”, height:“28px”, background: theme.accent,
+borderRadius:“2px”, boxShadow:`0 0 10px ${theme.accent}`
+}}/>
+<div style={{ fontSize:“clamp(13px,2vw,20px)”, fontWeight:800, color: theme.text }}>
+{data.title}
+</div>
+<div style={{
+marginLeft:“auto”, fontSize:“10px”, color: theme.accent,
+letterSpacing:“2px”, fontWeight:700
+}}>{data.tag || “DATI”}</div>
+</div>
+{/* Stats grid */}
+<div style={{
+flex:1, padding:“16px 30px”, display:“flex”, alignItems:“center”,
+justifyContent:“center”, gap:“16px”, zIndex:1, flexWrap:“wrap”
+}}>
+{stats.map((s, i) => (
+<div key={i} style={{
+flex:1, minWidth:“100px”, maxWidth:“160px”,
+background: theme.accent2 + “aa”,
+border:`1px solid ${theme.accent}44`,
+borderRadius:“16px”, padding:“20px 16px”, textAlign:“center”,
+backdropFilter:“blur(10px)”,
+boxShadow:`0 4px 20px ${theme.accent}20`
+}}>
+<div style={{ fontSize:“10px”, color: theme.accent, letterSpacing:“2px”, fontWeight:700, marginBottom:“8px” }}>
+{ICONS.stats[i % ICONS.stats.length]}
+</div>
+<div style={{ fontSize:“clamp(20px,3.5vw,36px)”, fontWeight:900, color: theme.accent, lineHeight:1 }}>
+{s.value}
+</div>
+<div style={{ fontSize:“9px”, color: theme.text + “88”, letterSpacing:“1.5px”, marginTop:“8px”, textTransform:“uppercase” }}>
+{s.label}
+</div>
+</div>
+))}
+</div>
+</div>
+);
+}
+
+function SlideQuote({ data, theme, idx }) {
+return (
+<div style={{
+width:“100%”, height:“100%”,
+background:`linear-gradient(135deg, ${theme.bg} 0%, ${theme.accent2} 100%)`,
+display:“flex”, flexDirection:“column”, alignItems:“center”, justifyContent:“center”,
+overflow:“hidden”, fontFamily:“Georgia, serif”, padding:“40px 60px”,
+position:“relative”, textAlign:“center”
+}}>
+{/* Big quote mark */}
+<div style={{
+position:“absolute”, top:”-10px”, left:“20px”,
+fontSize:“180px”, color: theme.accent + “18”, fontWeight:900, lineHeight:1,
+fontFamily:“Georgia, serif”, userSelect:“none”
+}}>”</div>
+<div style={{
+position:“absolute”, bottom:”-40px”, right:“20px”,
+fontSize:“180px”, color: theme.accent + “18”, fontWeight:900, lineHeight:1,
+fontFamily:“Georgia, serif”, userSelect:“none”
+}}>”</div>
+{/* Tag */}
+<div style={{
+fontSize:“10px”, letterSpacing:“3px”, color: theme.accent,
+fontFamily:”‘Segoe UI’,sans-serif”, fontWeight:700,
+marginBottom:“20px”, textTransform:“uppercase”
+}}>{data.tag || “CITAZIONE”}</div>
+{/* Quote text */}
+<div style={{
+fontSize:“clamp(14px,2.2vw,22px)”, color: theme.text,
+lineHeight:1.6, fontStyle:“italic”, maxWidth:“500px”, zIndex:1,
+textShadow:`0 2px 20px ${theme.bg}88`
+}}>
+“{data.quote || data.title}”
+</div>
+{/* Divider */}
+<div style={{
+width:“60px”, height:“3px”, background: theme.accent,
+borderRadius:“2px”, margin:“20px auto”,
+boxShadow:`0 0 12px ${theme.accent}`
+}}/>
+{data.title && data.quote && (
+<div style={{ fontSize:“12px”, color: theme.text + “99”, fontFamily:”‘Segoe UI’,sans-serif”, letterSpacing:“1px” }}>
+— {data.title}
+</div>
+)}
+</div>
+);
+}
+
+function SlideImage({ data, theme, idx }) {
+// Two-column layout: icon/visual left, text right
+const emoji = [“🌐”,“🧠”,“💼”,“🏆”,“🔬”,“📱”,“🎨”,“⚙️”,“🌍”,“📡”][idx % 10];
+return (
+<div style={{
+width:“100%”, height:“100%”, background: theme.bg,
+display:“flex”, overflow:“hidden”, fontFamily:”‘Segoe UI’,sans-serif”
+}}>
+{/* Left visual panel */}
+<div style={{
+width:“38%”, background:`linear-gradient(160deg, ${theme.accent}, ${theme.accent2})`,
+display:“flex”, flexDirection:“column”, alignItems:“center”, justifyContent:“center”,
+gap:“12px”, padding:“20px”, flexShrink:0, position:“relative”, overflow:“hidden”
+}}>
+<div style={{
+position:“absolute”, top:”-30px”, left:”-30px”,
+width:“120px”, height:“120px”, borderRadius:“50%”,
+background:“rgba(255,255,255,0.1)”
+}}/>
+<div style={{
+position:“absolute”, bottom:”-20px”, right:”-20px”,
+width:“80px”, height:“80px”, borderRadius:“50%”,
+background:“rgba(255,255,255,0.08)”
+}}/>
+<div style={{ fontSize:“52px”, zIndex:1 }}>{emoji}</div>
+<div style={{
+fontSize:“9px”, letterSpacing:“3px”, color:“rgba(255,255,255,0.7)”,
+fontWeight:700, textTransform:“uppercase”, zIndex:1
+}}>{data.tag || “LIVE”}</div>
+</div>
+{/* Right content */}
+<div style={{ flex:1, padding:“28px 32px”, display:“flex”, flexDirection:“column”, justifyContent:“center” }}>
+<div style={{ fontSize:“clamp(14px,2.2vw,22px)”, fontWeight:800, color: theme.text, marginBottom:“14px”, lineHeight:1.2 }}>
+{data.title}
+</div>
+{data.subtitle && (
+<div style={{ fontSize:“clamp(10px,1.3vw,13px)”, color: theme.text + “aa”, lineHeight:1.6, marginBottom:“16px” }}>
+{data.subtitle}
+</div>
+)}
+{(data.bullets || []).map((b, i) => (
+<div key={i} style={{ display:“flex”, alignItems:“center”, gap:“8px”, marginBottom:“8px” }}>
+<div style={{ width:“6px”, height:“6px”, borderRadius:“50%”, background: theme.accent, flexShrink:0 }}/>
+<div style={{ fontSize:“clamp(10px,1.2vw,12px)”, color: theme.text + “cc” }}>{b}</div>
+</div>
+))}
+</div>
+</div>
+);
+}
+
+function renderSlide(data, themeIdx) {
+const theme = pickTheme(themeIdx);
+switch(data.type) {
+case “title”:   return <SlideTitle   data={data} theme={theme} idx={themeIdx}/>;
+case “bullets”: return <SlideBullets data={data} theme={theme} idx={themeIdx}/>;
+case “stats”:   return <SlideStats   data={data} theme={theme} idx={themeIdx}/>;
+case “quote”:   return <SlideQuote   data={data} theme={theme} idx={themeIdx}/>;
+case “image”:   return <SlideImage   data={data} theme={theme} idx={themeIdx}/>;
+default:        return <SlideTitle   data={data} theme={theme} idx={themeIdx}/>;
+}
+}
+
+// ─── THUMBNAIL ────────────────────────────────────────────
+function Thumb({ slide, index, active, onClick }) {
+const theme = pickTheme(index);
+return (
+<div onClick={onClick} style={{
+flexShrink:0, width:“110px”, height:“62px”,
+borderRadius:“6px”, overflow:“hidden”, cursor:“pointer”,
+border: active ? `2px solid #00e5ff` : “2px solid #1e2530”,
+boxShadow: active ? “0 0 12px rgba(0,229,255,0.4)” : “none”,
+transition:“all 0.2s”, position:“relative”,
+background: theme.bg
+}}>
+<div style={{ width:“100%”, height:“100%”, transform:“scale(1)”, pointerEvents:“none” }}>
+<div style={{ width:“733px”, height:“413px”, transform:“scale(0.15)”, transformOrigin:“top left” }}>
+{renderSlide(slide.data, index)}
+</div>
+</div>
+<div style={{
+position:“absolute”, bottom:“3px”, right:“4px”,
+fontSize:“8px”, color:“rgba(255,255,255,0.6)”,
+fontFamily:“monospace”, fontWeight:700,
+background:“rgba(0,0,0,0.5)”, padding:“1px 4px”, borderRadius:“3px”
+}}>{index+1}</div>
+</div>
+);
+}
+
+// ─── MAIN APP ─────────────────────────────────────────────
+export default function SlideLive() {
+const [slides, setSlides] = useState([]);
+const [currentIdx, setCurrentIdx] = useState(-1);
+const [isListening, setIsListening] = useState(false);
+const [isGenerating, setIsGenerating] = useState(false);
+const [micStatus, setMicStatus] = useState(“PREMI PER PARLARE”);
+const [transcript, setTranscript] = useState([]);
+const [manualText, setManualText] = useState(””);
+const [sessionTime, setSessionTime] = useState(“00:00”);
+const [animKey, setAnimKey] = useState(0);
+const [hasSpeech, setHasSpeech] = useState(true);
+
+const recognitionRef = useRef(null);
+const accTextRef = useRef(””);
+const silenceRef = useRef(null);
+const sessionStartRef = useRef(Date.now());
+const transcriptRef = useRef(null);
+const isGeneratingRef = useRef(false);
+
+// Session timer
+useEffect(() => {
+const t = setInterval(() => {
+const e = Math.floor((Date.now() - sessionStartRef.current) / 1000);
+const m = String(Math.floor(e/60)).padStart(2,“0”);
+const s = String(e%60).padStart(2,“0”);
+setSessionTime(`${m}:${s}`);
+}, 1000);
+return () => clearInterval(t);
+}, []);
+
+// Speech recognition init
+useEffect(() => {
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SR) { setHasSpeech(false); return; }
+const r = new SR();
+r.lang = “it-IT”;
+r.continuous = true;
+r.interimResults = true;
+r.onresult = (e) => {
+let final = “”;
+for (let i = e.resultIndex; i < e.results.length; i++) {
+if (e.results[i].isFinal) final += e.results[i][0].transcript;
+}
+if (final) {
+accTextRef.current += “ “ + final.trim();
+addLog(final.trim(), “voice”);
+clearTimeout(silenceRef.current);
+silenceRef.current = setTimeout(() => {
+const t = accTextRef.current.trim();
+if (t.length > 8 && !isGeneratingRef.current) {
+accTextRef.current = “”;
+triggerGenerate(t);
+}
+}, 2000);
+}
+};
+r.onerror = (e) => {
+if (e.error === “not-allowed”) {
+setHasSpeech(false);
+setMicStatus(“NON AUTORIZZATO”);
+}
+};
+r.onend = () => {
+if (recognitionRef.current?.*listening) {
+try { r.start(); } catch(*) {}
+}
+};
+recognitionRef.current = r;
+return () => { try { r.stop(); } catch(_) {} };
+}, []);
+
+const addLog = (text, type) => {
+const now = new Date();
+const time = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+setTranscript(p => […p.slice(-30), { text, type, time }]);
+setTimeout(() => { if (transcriptRef.current) transcriptRef.current.scrollTop = 9999; }, 50);
+};
+
+const triggerGenerate = useCallback(async (text) => {
+isGeneratingRef.current = true;
+setIsGenerating(true);
+
+```
+const system = `Sei un generatore di slide visive professionali tipo PowerPoint. Crea slide visivamente ricche.
 ```
 
-  </div>
-</div>
-
-<div class="tooltip" id="tooltip"></div>
-
-<script>
-// ─── STATE ──────────────────────────────────────────────
-let slides = [];
-let currentSlideIndex = -1;
-let isListening = false;
-let isGenerating = false;
-let recognition = null;
-let sessionStart = Date.now();
-let sessionTimer = null;
-let accumulatedText = '';
-let silenceTimer = null;
-const SILENCE_DELAY = 2200; // ms of silence before generating
-
-// ─── INIT ────────────────────────────────────────────────
-function init() {
-  startSessionTimer();
-  initSpeechRecognition();
-}
-
-function startSessionTimer() {
-  sessionTimer = setInterval(() => {
-    const elapsed = Math.floor((Date.now() - sessionStart) / 1000);
-    const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
-    const s = String(elapsed % 60).padStart(2, '0');
-    document.getElementById('sessionTime').textContent = `${m}:${s}`;
-  }, 1000);
-}
-
-// ─── SPEECH RECOGNITION ──────────────────────────────────
-function initSpeechRecognition() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    document.getElementById('micStatus').textContent = 'USA IL CAMPO TESTO';
-    document.getElementById('micStatus').className = 'mic-status error';
-    document.getElementById('micBtn').style.opacity = '0.4';
-    document.getElementById('micBtn').style.cursor = 'default';
-    document.getElementById('micBtn').onclick = null;
-    return;
-  }
-
-  recognition = new SpeechRecognition();
-  recognition.lang = 'it-IT';
-  recognition.continuous = true;
-  recognition.interimResults = true;
-
-  recognition.onresult = (e) => {
-    let interim = '';
-    let final = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      const t = e.results[i][0].transcript;
-      if (e.results[i].isFinal) final += t;
-      else interim += t;
-    }
-
-    if (final) {
-      accumulatedText += ' ' + final.trim();
-      addTranscriptEntry(final.trim(), 'voice');
-
-      clearTimeout(silenceTimer);
-      silenceTimer = setTimeout(() => {
-        if (accumulatedText.trim().length > 10) {
-          const textToProcess = accumulatedText.trim();
-          accumulatedText = '';
-          generateSlide(textToProcess);
-        }
-      }, SILENCE_DELAY);
-    }
-  };
-
-  recognition.onerror = (e) => {
-    if (e.error === 'not-allowed') {
-      showTooltip('Microfono non autorizzato. Usa il campo testo.');
-      setMicOff();
-    }
-  };
-
-  recognition.onend = () => {
-    if (isListening) {
-      // Restart
-      try { recognition.start(); } catch(err) {}
-    }
-  };
-}
-
-function toggleListening() {
-  if (!recognition) return;
-  isListening ? stopListening() : startListening();
-}
-
-function startListening() {
-  isListening = true;
-  recognition.start();
-  document.getElementById('micBtn').classList.add('listening');
-  document.getElementById('micBtn').textContent = '⏹';
-  document.getElementById('waveform').classList.add('active');
-  document.getElementById('micStatus').textContent = 'IN ASCOLTO...';
-  document.getElementById('micStatus').className = 'mic-status active';
-}
-
-function stopListening() {
-  isListening = false;
-  try { recognition.stop(); } catch(e) {}
-  setMicOff();
-  clearTimeout(silenceTimer);
-  if (accumulatedText.trim().length > 10) {
-    const t = accumulatedText.trim();
-    accumulatedText = '';
-    generateSlide(t);
-  }
-}
-
-function setMicOff() {
-  document.getElementById('micBtn').classList.remove('listening');
-  document.getElementById('micBtn').textContent = '🎤';
-  document.getElementById('waveform').classList.remove('active');
-  document.getElementById('micStatus').textContent = 'PREMI PER PARLARE';
-  document.getElementById('micStatus').className = 'mic-status';
-}
-
-// ─── MANUAL INPUT ─────────────────────────────────────────
-function sendManual() {
-  const input = document.getElementById('manualText');
-  const text = input.value.trim();
-  if (!text || isGenerating) return;
-  input.value = '';
-  addTranscriptEntry(text, 'voice');
-  generateSlide(text);
-}
-
-// ─── GENERATE SLIDE VIA GROQ API ─────────────────────────
-const GROQ_API_KEY = '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';
-const GROQ_MODEL   = 'llama-3.3-70b-versatile';
-
-async function generateSlide(text) {
-  if (isGenerating) return;
-  isGenerating = true;
-
-  document.getElementById('slideFrame').classList.add('generating');
-  document.getElementById('genOverlay').classList.add('active');
-
-  const systemPrompt = `Sei un generatore di slide visive. L'utente parla e tu crei una slide professionale basata su ciò che dice.
-
-Rispondi SOLO con un oggetto JSON valido (nessun testo prima o dopo, nessun markdown), con questa struttura:
+Rispondi SOLO con JSON valido, nessun testo extra, nessun markdown.
+Struttura:
 {
-  "type": "title|bullets|stats|quote",
-  "tag": "una parola chiave tematica in maiuscolo (es: AI, MARKETING, SCIENZA)",
-  "title": "Titolo della slide (massimo 7 parole, impattante)",
-  "subtitle": "Sottotitolo o descrizione (solo per type: title, massimo 20 parole)",
-  "bullets": ["punto 1", "punto 2", "punto 3"],
-  "stats": [{"value": "95%", "label": "CRESCITA"}],
-  "quote": "citazione o frase chiave"
+“type”: “title|bullets|stats|quote|image”,
+“tag”: “PAROLA CHIAVE IN MAIUSCOLO”,
+“title”: “Titolo impattante max 7 parole”,
+“subtitle”: “Descrizione max 18 parole (solo per title/image)”,
+“bullets”: [“punto 1 dettagliato”, “punto 2”, “punto 3”, “punto 4”] (per bullets/image),
+“stats”: [{“value”: “87%”, “label”: “EFFICIENZA”}, {“value”: “3x”, “label”: “CRESCITA”}] (per stats, max 3),
+“quote”: “frase ispirazionale o principio” (per quote)
 }
+Regole:
 
-Scegli il tipo più adatto al contenuto:
-- title: per introduzioni o argomenti generali
-- bullets: per elenchi, processi, caratteristiche
-- stats: per numeri, dati, performance
-- quote: per citazioni, principi, filosofie
-
-Parla sempre in italiano. Slide brevi, impattanti, visive.`;
-
+- title: per introduzioni, argomenti nuovi, concetti generali
+- bullets: per processi, caratteristiche, vantaggi, passaggi
+- stats: per numeri, percentuali, performance, confronti
+- quote: per principi, filosofie, citazioni
+- image: per argomenti visivi, prodotti, luoghi
+  Rispondi in italiano. Sii specifico e informativo, non generico.`;
+  
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        max_tokens: 1000,
-        temperature: 0.7,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Crea una slide per questo contenuto: "${text}"` }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content || '';
-    const clean = raw.replace(/```json|```/g, '').trim();
-    let slideData;
-    try { slideData = JSON.parse(clean); }
-    catch(e) {
-      slideData = {
-        type: 'title',
-        tag: 'LIVE',
-        title: text.split(' ').slice(0, 6).join(' '),
-        subtitle: text
-      };
-    }
-
-    addSlide(slideData, text);
-    addTranscriptEntry(`Slide: "${slideData.title}"`, 'slide');
-
-  } catch (err) {
-    showTooltip('Errore API Groq. Riprova.');
-    addSlide({
-      type: 'title',
-      tag: 'LIVE',
-      title: text.split(' ').slice(0, 5).join(' ') || 'NUOVA SLIDE',
-      subtitle: text
-    }, text);
-  }
-
-  isGenerating = false;
-  document.getElementById('slideFrame').classList.remove('generating');
-  document.getElementById('genOverlay').classList.remove('active');
-}
-
-// ─── RENDER SLIDE ─────────────────────────────────────────
-function renderSlideHTML(s) {
-  const deco = `<div class="slide-deco deco-1"></div><div class="slide-deco deco-2"></div>`;
-
-  if (s.type === 'title') {
-    return `${deco}
-      <div class="slide-tag">${s.tag || 'LIVE'}</div>
-      <div class="slide-title">${s.title}</div>
-      ${s.subtitle ? `<div class="slide-subtitle">${s.subtitle}</div>` : ''}`;
-  }
-
-  if (s.type === 'bullets') {
-    const items = (s.bullets || []).map(b => `<li>${b}</li>`).join('');
-    return `${deco}
-      <div class="slide-tag">${s.tag || 'LIVE'}</div>
-      <div class="slide-title">${s.title}</div>
-      <ul class="slide-bullets">${items}</ul>`;
-  }
-
-  if (s.type === 'stats') {
-    const items = (s.stats || []).map(st =>
-      `<div class="stat-item"><div class="stat-value">${st.value}</div><div class="stat-label">${st.label}</div></div>`
-    ).join('');
-    return `${deco}
-      <div class="slide-tag">${s.tag || 'DATI'}</div>
-      <div class="slide-title">${s.title}</div>
-      <div class="slide-stat">${items}</div>`;
-  }
-
-  if (s.type === 'quote') {
-    return `${deco}
-      <div class="slide-tag">${s.tag || 'CITAZIONE'}</div>
-      <div class="slide-title" style="font-size:clamp(18px,2.8vw,34px); color: var(--accent); font-family: 'DM Sans'; font-weight:300; line-height:1.4; letter-spacing:0">"${s.quote || s.title}"</div>
-      ${s.title && s.quote ? `<div class="slide-subtitle" style="margin-top:16px">— ${s.title}</div>` : ''}`;
-  }
-
-  return `${deco}<div class="slide-title">${s.title}</div>`;
-}
-
-function addSlide(slideData, rawText) {
-  slides.push({ data: slideData, text: rawText });
-  currentSlideIndex = slides.length - 1;
-
-  document.getElementById('slideCountDisplay').textContent = slides.length;
-
-  // Render main slide
-  const content = document.getElementById('slideContent');
-  content.innerHTML = renderSlideHTML(slideData);
-
-  // Add thumbnail
-  addThumbnail(slideData, currentSlideIndex);
-}
-
-function addThumbnail(slideData, index) {
-  const container = document.getElementById('thumbsContainer');
-  const thumb = document.createElement('div');
-  thumb.className = 'thumb active';
-  thumb.id = `thumb-${index}`;
-  thumb.innerHTML = `<span class="thumb-num">${index + 1}</span><span>${slideData.title.substring(0, 40)}</span>`;
-  thumb.onclick = () => selectSlide(index);
-
-  // Deactivate previous
-  container.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
-  container.appendChild(thumb);
-  thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
-}
-
-function selectSlide(index) {
-  if (index < 0 || index >= slides.length) return;
-  currentSlideIndex = index;
-  const content = document.getElementById('slideContent');
-  content.innerHTML = renderSlideHTML(slides[index].data);
-
-  document.querySelectorAll('.thumb').forEach((t, i) => {
-    t.classList.toggle('active', i === index);
+  const res = await fetch(“https://api.groq.com/openai/v1/chat/completions”, {
+  method: “POST”,
+  headers: { “Content-Type”: “application/json”, “Authorization”: `Bearer ${GROQ_API_KEY}` },
+  body: JSON.stringify({
+  model: GROQ_MODEL, max_tokens: 800, temperature: 0.7,
+  messages: [
+  { role: “system”, content: system },
+  { role: “user”, content: `Crea una slide PowerPoint visiva per: "${text}"` }
+  ]
+  })
   });
-}
-
-// ─── TRANSCRIPT ───────────────────────────────────────────
-function addTranscriptEntry(text, type) {
-  const box = document.getElementById('transcriptBox');
-  const now = new Date();
-  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-
-  const entry = document.createElement('div');
-  entry.className = 'transcript-entry';
-  entry.innerHTML = `
-    <div class="t-meta">
-      <span class="t-time">${time}</span>
-      <span class="t-badge ${type}">${type === 'voice' ? 'VOCE' : 'SLIDE'}</span>
+  const data = await res.json();
+  const raw = data.choices?.[0]?.message?.content || “”;
+  const clean = raw.replace(/`json|`/g, “”).trim();
+  let parsed;
+  try { parsed = JSON.parse(clean); }
+  catch { parsed = { type: “title”, tag: “LIVE”, title: text.split(” “).slice(0,6).join(” “), subtitle: text }; }
+  
+  ```
+  setSlides(prev => {
+    const next = [...prev, { data: parsed, text }];
+    setCurrentIdx(next.length - 1);
+    setAnimKey(k => k+1);
+    return next;
+  });
+  addLog(`✦ Slide: "${parsed.title}"`, "slide");
+  ```
+  
+  } catch {
+  const fallback = { type: “title”, tag: “LIVE”, title: text.split(” “).slice(0,5).join(” “) || “SLIDE”, subtitle: text };
+  setSlides(prev => { const n=[…prev,{data:fallback,text}]; setCurrentIdx(n.length-1); setAnimKey(k=>k+1); return n; });
+  }
+  isGeneratingRef.current = false;
+  setIsGenerating(false);
+  }, []);
+  
+  const toggleMic = () => {
+  const r = recognitionRef.current;
+  if (!r) return;
+  if (isListening) {
+  r.*listening = false;
+  try { r.stop(); } catch(*) {}
+  setIsListening(false);
+  setMicStatus(“PREMI PER PARLARE”);
+  clearTimeout(silenceRef.current);
+  const t = accTextRef.current.trim();
+  if (t.length > 8 && !isGeneratingRef.current) { accTextRef.current = “”; triggerGenerate(t); }
+  } else {
+  r.*listening = true;
+  try { r.start(); } catch(*) {}
+  setIsListening(true);
+  setMicStatus(“IN ASCOLTO…”);
+  }
+  };
+  
+  const sendManual = () => {
+  const t = manualText.trim();
+  if (!t || isGeneratingRef.current) return;
+  setManualText(””);
+  addLog(t, “voice”);
+  triggerGenerate(t);
+  };
+  
+  const clearAll = () => {
+  setSlides([]); setCurrentIdx(-1); setTranscript([]);
+  accTextRef.current = “”;
+  if (isListening) toggleMic();
+  };
+  
+  const currentSlide = currentIdx >= 0 ? slides[currentIdx] : null;
+  
+  return (
+  
+    <div style={{
+      width:"100%", height:"100vh", background:"#080a0f", color:"#e8edf5",
+      fontFamily:"'DM Sans', 'Segoe UI', sans-serif",
+      display:"flex", flexDirection:"column", overflow:"hidden"
+    }}>
+      {/* HEADER */}
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        padding:"12px 24px", borderBottom:"1px solid #1e2530",
+        background:"rgba(13,17,23,0.95)", flexShrink:0
+      }}>
+        <div style={{
+          fontFamily:"'Bebas Neue', 'Impact', sans-serif", fontSize:"22px",
+          letterSpacing:"4px", background:"linear-gradient(90deg,#00e5ff,#7c3aed)",
+          WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent"
+        }}>
+          SLIDE<span style={{ background:"linear-gradient(90deg,#f59e0b,#ef4444)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>·LIVE</span>
+        </div>
+        <div style={{ display:"flex", gap:"20px", alignItems:"center" }}>
+          <span style={{ fontFamily:"monospace", fontSize:"11px", color:"#4a5568" }}>
+            SLIDES: <span style={{ color:"#00e5ff", fontWeight:700 }}>{slides.length}</span>
+          </span>
+          <span style={{ fontFamily:"monospace", fontSize:"11px", color:"#4a5568" }}>{sessionTime}</span>
+          {isGenerating && (
+            <div style={{ display:"flex", gap:"4px", alignItems:"center" }}>
+              {[0,1,2].map(i=>(
+                <div key={i} style={{
+                  width:"5px", height:"5px", borderRadius:"50%", background:"#00e5ff",
+                  animation:`pulse 1s ease-in-out ${i*0.2}s infinite`
+                }}/>
+              ))}
+              <span style={{ fontSize:"10px", color:"#00e5ff", letterSpacing:"2px", marginLeft:"4px" }}>GENERANDO</span>
+            </div>
+          )}
+        </div>
+      </div>
+  
+  ```
+  {/* MAIN */}
+  <div style={{ flex:1, display:"flex", overflow:"hidden" }}>
+  
+    {/* ── SLIDE AREA ── */}
+    <div style={{ flex:1, display:"flex", flexDirection:"column", padding:"20px", gap:"12px", overflow:"hidden" }}>
+      {/* Main slide */}
+      <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <div style={{
+          width:"100%", maxWidth:"780px", aspectRatio:"16/9",
+          borderRadius:"10px", overflow:"hidden",
+          border: isGenerating ? "1px solid #00e5ff" : "1px solid #1e2530",
+          boxShadow: isGenerating
+            ? "0 0 60px rgba(0,229,255,0.2), 0 20px 60px rgba(0,0,0,0.6)"
+            : "0 0 0px rgba(0,229,255,0), 0 20px 60px rgba(0,0,0,0.5)",
+          transition:"border 0.3s, box-shadow 0.3s",
+          position:"relative"
+        }}>
+          {currentSlide ? (
+            <div key={animKey} style={{
+              width:"100%", height:"100%",
+              animation:"slideIn 0.5s cubic-bezier(0.16,1,0.3,1)"
+            }}>
+              {renderSlide(currentSlide.data, currentIdx)}
+            </div>
+          ) : (
+            <div style={{
+              width:"100%", height:"100%", background:"#0d1117",
+              display:"flex", flexDirection:"column", alignItems:"center",
+              justifyContent:"center", gap:"12px", opacity:0.4
+            }}>
+              <div style={{ fontSize:"40px" }}>🎤</div>
+              <div style={{ fontFamily:"monospace", letterSpacing:"4px", fontSize:"14px", color:"#4a5568" }}>
+                PRONTO AD ASCOLTARE
+              </div>
+              <div style={{ fontSize:"12px", color:"#4a5568" }}>Parla oppure scrivi nel campo a destra</div>
+            </div>
+          )}
+          {/* Generating overlay */}
+          {isGenerating && (
+            <div style={{
+              position:"absolute", inset:0, background:"rgba(8,10,15,0.65)",
+              display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+              gap:"10px", backdropFilter:"blur(4px)"
+            }}>
+              <div style={{ display:"flex", gap:"6px" }}>
+                {[0,1,2].map(i=>(
+                  <div key={i} style={{
+                    width:"8px", height:"8px", borderRadius:"50%", background:"#00e5ff",
+                    animation:`pulse 1.2s ease-in-out ${i*0.2}s infinite`
+                  }}/>
+                ))}
+              </div>
+              <div style={{ fontFamily:"monospace", fontSize:"11px", letterSpacing:"3px", color:"#00e5ff" }}>
+                GENERANDO SLIDE
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+  
+      {/* Thumbnails */}
+      {slides.length > 0 && (
+        <div style={{
+          display:"flex", gap:"8px", overflowX:"auto",
+          padding:"4px 2px", flexShrink:0,
+          scrollbarWidth:"thin", scrollbarColor:"#1e2530 transparent"
+        }}>
+          {slides.map((s, i) => (
+            <Thumb key={i} slide={s} index={i} active={i===currentIdx} onClick={()=>{setCurrentIdx(i);setAnimKey(k=>k+1);}}/>
+          ))}
+        </div>
+      )}
     </div>
-    <div class="t-text">${text}</div>
-  `;
-  box.appendChild(entry);
-  box.scrollTop = box.scrollHeight;
+  
+    {/* ── RIGHT PANEL ── */}
+    <div style={{
+      width:"280px", borderLeft:"1px solid #1e2530",
+      background:"#0d1117", display:"flex", flexDirection:"column", flexShrink:0
+    }}>
+      {/* MIC */}
+      <div style={{ padding:"20px", borderBottom:"1px solid #1e2530", display:"flex", flexDirection:"column", alignItems:"center", gap:"12px" }}>
+        <div style={{
+          fontSize:"9px", letterSpacing:"3px", color:"#4a5568",
+          textTransform:"uppercase", fontFamily:"monospace", alignSelf:"flex-start"
+        }}>INPUT VOCALE</div>
+  
+        <div
+          onClick={hasSpeech ? toggleMic : undefined}
+          style={{
+            width:"70px", height:"70px", borderRadius:"50%",
+            background: isListening ? "rgba(0,229,255,0.1)" : "#080a0f",
+            border: isListening ? "2px solid #00e5ff" : "2px solid #1e2530",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            cursor: hasSpeech ? "pointer" : "default",
+            fontSize:"28px",
+            boxShadow: isListening ? "0 0 30px rgba(0,229,255,0.3)" : "none",
+            transition:"all 0.3s", position:"relative"
+          }}
+        >
+          {isListening ? "⏹" : "🎤"}
+        </div>
+  
+        {/* Waveform */}
+        <div style={{ display:"flex", gap:"3px", alignItems:"center", height:"28px" }}>
+          {Array(10).fill(0).map((_, i) => (
+            <div key={i} style={{
+              width:"3px", background:"#00e5ff", borderRadius:"2px",
+              height: isListening ? `${4 + Math.random()*20}px` : "4px",
+              opacity: isListening ? 0.8 : 0.2,
+              transition:"height 0.15s ease",
+              animation: isListening ? `wave 0.8s ease-in-out ${i*0.08}s infinite` : "none"
+            }}/>
+          ))}
+        </div>
+  
+        <div style={{
+          fontSize:"10px", letterSpacing:"2px", fontFamily:"monospace",
+          color: isListening ? "#00e5ff" : "#4a5568", textTransform:"uppercase"
+        }}>{micStatus}</div>
+      </div>
+  
+      {/* Manual input */}
+      <div style={{ padding:"10px 14px", borderBottom:"1px solid #1e2530", display:"flex", gap:"6px" }}>
+        <input
+          value={manualText}
+          onChange={e=>setManualText(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&sendManual()}
+          placeholder="Oppure scrivi qui..."
+          style={{
+            flex:1, background:"#080a0f", border:"1px solid #1e2530",
+            color:"#e8edf5", padding:"7px 10px", borderRadius:"6px",
+            fontSize:"12px", outline:"none", fontFamily:"inherit"
+          }}
+        />
+        <button onClick={sendManual} style={{
+          background:"#00e5ff", color:"#000", border:"none",
+          padding:"7px 12px", borderRadius:"6px", cursor:"pointer",
+          fontSize:"13px", fontWeight:700
+        }}>→</button>
+      </div>
+  
+      {/* Log */}
+      <div style={{
+        fontSize:"9px", letterSpacing:"3px", color:"#4a5568",
+        fontFamily:"monospace", textTransform:"uppercase",
+        padding:"10px 14px 4px"
+      }}>LOG</div>
+      <div ref={transcriptRef} style={{
+        flex:1, overflowY:"auto", scrollbarWidth:"thin",
+        scrollbarColor:"#1e2530 transparent"
+      }}>
+        {transcript.map((e,i) => (
+          <div key={i} style={{
+            padding:"8px 14px", borderBottom:"1px solid rgba(30,37,48,0.4)"
+          }}>
+            <div style={{ display:"flex", gap:"6px", alignItems:"center", marginBottom:"3px" }}>
+              <span style={{ fontFamily:"monospace", fontSize:"8px", color:"#4a5568" }}>{e.time}</span>
+              <span style={{
+                fontSize:"7px", padding:"1px 5px", borderRadius:"3px", letterSpacing:"1px",
+                fontFamily:"monospace", textTransform:"uppercase",
+                background: e.type==="voice" ? "rgba(0,229,255,0.1)" : "rgba(124,58,237,0.15)",
+                color: e.type==="voice" ? "#00e5ff" : "#a78bfa"
+              }}>{e.type==="voice"?"VOCE":"SLIDE"}</span>
+            </div>
+            <div style={{ fontSize:"11px", color:"rgba(232,237,245,0.65)", lineHeight:1.4 }}>{e.text}</div>
+          </div>
+        ))}
+      </div>
+  
+      {/* Controls */}
+      <div style={{ display:"flex", gap:"6px", padding:"10px 14px", borderTop:"1px solid #1e2530" }}>
+        <button onClick={clearAll} style={{
+          flex:1, padding:"7px", background:"transparent",
+          border:"1px solid #1e2530", color:"#4a5568", borderRadius:"6px",
+          cursor:"pointer", fontSize:"9px", letterSpacing:"1px",
+          fontFamily:"monospace", textTransform:"uppercase"
+        }}>RESET</button>
+      </div>
+    </div>
+  </div>
+  
+  <style>{`
+    @keyframes slideIn {
+      from { opacity:0; transform:translateY(16px) scale(0.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes pulse {
+      0%,100% { transform:scale(0.6); opacity:0.3; }
+      50%      { transform:scale(1);   opacity:1; }
+    }
+    @keyframes wave {
+      0%,100% { height:4px; }
+      50%      { height:20px; }
+    }
+    * { box-sizing:border-box; }
+    ::-webkit-scrollbar { width:4px; height:4px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:#1e2530; border-radius:2px; }
+  `}</style>
+  ```
+  
+    </div>
+  );
+
 }
-
-// ─── TOOLTIP ──────────────────────────────────────────────
-function showTooltip(msg) {
-  const t = document.getElementById('tooltip');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-// ─── EXPORT ───────────────────────────────────────────────
-function exportSlides() {
-  if (slides.length === 0) { showTooltip('Nessuna slide da esportare'); return; }
-  const data = slides.map((s, i) => `SLIDE ${i+1}: ${s.data.title}\n${s.text}`).join('\n\n---\n\n');
-  const blob = new Blob([data], { type: 'text/plain' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `slide-live-${Date.now()}.txt`;
-  a.click();
-  showTooltip('Esportazione completata!');
-}
-
-function clearAll() {
-  slides = [];
-  currentSlideIndex = -1;
-  accumulatedText = '';
-  document.getElementById('slideCountDisplay').textContent = '0';
-  document.getElementById('slideContent').innerHTML = `
-    <div class="empty-state">
-      <div class="empty-icon">🎤</div>
-      <div class="empty-text">PRONTO AD ASCOLTARE</div>
-      <div class="empty-sub">Premi il microfono e inizia a parlare</div>
-    </div>`;
-  document.getElementById('thumbsContainer').innerHTML = '';
-  document.getElementById('transcriptBox').innerHTML = '';
-  if (isListening) stopListening();
-  showTooltip('Reset completato');
-}
-
-// ─── START ────────────────────────────────────────────────
-init();
-</script>
-
-</body>
-</html>
