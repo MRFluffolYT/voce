@@ -376,10 +376,10 @@ async function genSlide(text){
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:SYS,messages:[{role:'user',content:`Speaker: "${text}"`}]})
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:800,system:SYS,messages:[{role:'user',content:`Speaker: "${text}"`}]})
     });
     const d=await r.json();
-    if(d.error) throw new Error(d.error.message);
+    if(d.error) throw new Error(d.error.type+': '+d.error.message);
     const raw=(d.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
     const slide=JSON.parse(raw);
     slide.id=Date.now();
@@ -389,7 +389,14 @@ async function genSlide(text){
     presentBtn.style.display='block';
     scCnt.textContent=slides.length; pmCnt.textContent=slides.length+' slide';
     setSt('In ascolto…','#34c759');
-  } catch(e){ console.error(e); setSt('Errore — riprovo…','#ff3b30'); setTimeout(()=>setSt('In ascolto…','#34c759'),2200); }
+    errEl.style.display='none';
+  } catch(err){
+    console.error(err);
+    errEl.textContent='⚠️ '+err.message;
+    errEl.style.display='block';
+    setSt('Errore','#ff3b30');
+    setTimeout(()=>{ setSt('In ascolto…','#34c759'); },3000);
+  }
   finally { genBadge.style.display='none'; }
 }
 
