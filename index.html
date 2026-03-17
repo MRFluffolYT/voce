@@ -4,331 +4,256 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>VoiceSlide — AI Presentation</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=DM+Sans:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<title>VoiceSlide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; background: #0e0c09; color: #f0ece3; font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: #0e0c09; }
-  ::-webkit-scrollbar-thumb { background: #2a2418; border-radius: 2px; }
+  :root {
+    --bg: #f5f5f7;
+    --surface: #ffffff;
+    --surface2: #f5f5f7;
+    --border: rgba(0,0,0,0.08);
+    --text: #1d1d1f;
+    --text2: #6e6e73;
+    --text3: #aeaeb2;
+    --accent: #0071e3;
+    --green: #34c759;
+    --red: #ff3b30;
+    --slide-bg: #1d1d1f;
+    --r: 18px; --rs: 12px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+  html, body { height:100%; background:var(--bg); color:var(--text); font-family:-apple-system,'Helvetica Neue',sans-serif; -webkit-font-smoothing:antialiased; }
+  ::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.12); border-radius:3px; }
 
-@keyframes slideIn { from { opacity:0; transform: translateY(20px) scale(0.97); } to { opacity:1; transform: none; } }
-@keyframes fadeUp { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform: none; } }
-@keyframes scaleIn { from { opacity:0; transform: scale(0.5); } to { opacity:1; transform: scale(1); } }
-@keyframes wave { from { transform: scaleY(0.4); } to { transform: scaleY(1.3); } }
-@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(224,96,96,0.4), 0 8px 32px rgba(224,96,96,0.3); } 50% { box-shadow: 0 0 0 12px rgba(224,96,96,0), 0 8px 32px rgba(224,96,96,0.15); } }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes glow { 0%,100% { opacity:0.03; } 50% { opacity:0.07; } }
+@keyframes slideUp { from{opacity:0;transform:translateY(20px) scale(0.98)} to{opacity:1;transform:none} }
+@keyframes popIn { from{opacity:0;transform:scale(0.7)} to{opacity:1;transform:scale(1)} }
+@keyframes itemIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:none} }
+@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes wave { 0%,100%{transform:scaleY(0.25)} 50%{transform:scaleY(1)} }
+@keyframes ripple { 0%{box-shadow:0 0 0 0 rgba(0,113,227,0.25)} 70%{box-shadow:0 0 0 18px rgba(0,113,227,0)} 100%{box-shadow:0 0 0 0 rgba(0,113,227,0)} }
+@keyframes rippleRed { 0%{box-shadow:0 0 0 0 rgba(255,59,48,0.25)} 70%{box-shadow:0 0 0 18px rgba(255,59,48,0)} 100%{box-shadow:0 0 0 0 rgba(255,59,48,0)} }
 
-#app { min-height: 100vh; display: flex; flex-direction: column; }
+#app { height:100vh; display:flex; flex-direction:column; overflow:hidden; }
 
 /* HEADER */
 header {
-padding: 16px 24px;
-border-bottom: 1px solid rgba(200,169,110,0.08);
-display: flex; align-items: center; justify-content: space-between;
-flex-shrink: 0;
+height:52px; flex-shrink:0;
+background:rgba(245,245,247,0.85); backdrop-filter:blur(20px);
+border-bottom:1px solid var(–border);
+display:flex; align-items:center; justify-content:space-between; padding:0 24px;
+position:relative; z-index:10;
 }
-.logo { display: flex; align-items: center; gap: 10px; }
-.logo-icon { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #c8a96e, #7a5c14); display: flex; align-items: center; justify-content: center; font-size: 16px; }
-.logo-name { font-family: ‘Playfair Display’, serif; font-size: 1.2rem; font-weight: 700; }
-.logo-badge { font-size: 0.68rem; color: #5a5448; background: rgba(200,169,110,0.06); border: 1px solid rgba(200,169,110,0.12); padding: 2px 8px; border-radius: 20px; }
-#present-btn {
-padding: 8px 18px; border-radius: 8px;
-background: linear-gradient(135deg, #c8a96e, #8b6914);
-border: none; color: #1a1510; font-weight: 700; cursor: pointer; font-size: 0.85rem;
-font-family: ‘DM Sans’, sans-serif; display: none;
-}
-#present-btn:hover { opacity: 0.9; }
+.hd-left { display:flex; align-items:center; gap:9px; }
+.app-ico { width:28px; height:28px; border-radius:7px; background:linear-gradient(145deg,#0a84ff,#0055b3); display:flex; align-items:center; justify-content:center; font-size:14px; box-shadow:0 2px 8px rgba(0,113,227,0.28); }
+.app-nm { font-size:15px; font-weight:600; letter-spacing:-0.3px; }
+.app-badge { font-size:10px; color:var(–accent); background:rgba(0,113,227,0.08); padding:2px 8px; border-radius:20px; font-weight:500; }
+#present-btn { display:none; padding:6px 16px; border-radius:20px; background:var(–accent); color:#fff; border:none; font-size:13px; font-weight:500; cursor:pointer; font-family:inherit; letter-spacing:-0.2px; transition:background 0.15s,transform 0.1s; }
+#present-btn:hover { background:#005bbf; } #present-btn:active { transform:scale(0.96); }
 
-/* MAIN LAYOUT */
-.main { flex: 1; display: flex; overflow: hidden; }
+/* LAYOUT */
+.main { flex:1; display:flex; overflow:hidden; }
 
-/* LEFT PANEL */
-.left-panel {
-width: 300px; min-width: 260px;
-border-right: 1px solid rgba(200,169,110,0.08);
-display: flex; flex-direction: column;
-padding: 24px; gap: 20px; overflow-y: auto;
-}
+/* LEFT */
+.left { width:272px; flex-shrink:0; background:var(–surface); border-right:1px solid var(–border); display:flex; flex-direction:column; overflow:hidden; }
 
-/* MIC AREA */
-.mic-area { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.mic-sec { padding:28px 20px 22px; display:flex; flex-direction:column; align-items:center; gap:16px; border-bottom:1px solid var(–border); }
 #mic-btn {
-width: 88px; height: 88px; border-radius: 50%; border: none; cursor: pointer; font-size: 2rem;
-background: linear-gradient(135deg, #c8a96e, #7a5c14);
-box-shadow: 0 8px 32px rgba(200,169,110,0.2);
-transition: all 0.3s; outline: none;
+width:72px; height:72px; border-radius:50%; border:none; cursor:pointer; font-size:26px; outline:none;
+background:rgba(0,113,227,0.07); transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+display:flex; align-items:center; justify-content:center;
+animation:ripple 2.5s infinite;
 }
-#mic-btn.listening {
-background: linear-gradient(135deg, #e06060, #9b2020);
-animation: pulse 2s infinite;
+#mic-btn.listening { background:rgba(255,59,48,0.09); animation:rippleRed 1.8s infinite; }
+#mic-btn:hover { transform:scale(1.06); } #mic-btn:active { transform:scale(0.93); }
+#mic-btn:disabled { opacity:0.35; cursor:not-allowed; transform:none; animation:none; }
+
+.st-row { display:flex; flex-direction:column; align-items:center; gap:8px; }
+#st-txt { font-size:13px; font-weight:500; color:var(–text2); transition:color 0.3s; }
+
+.wv-wrap { display:flex; align-items:center; gap:2.5px; height:18px; }
+.wv-bar { width:2.5px; border-radius:2px; background:var(–text3); height:4px; transition:background 0.3s; }
+.wv-wrap.on .wv-bar { background:var(–accent); animation:wave 0.7s ease-in-out infinite alternate; }
+
+#hint { font-size:12px; color:var(–text3); text-align:center; line-height:1.55; padding:0 6px; }
+#err { display:none; font-size:12px; color:var(–red); text-align:center; background:rgba(255,59,48,0.06); border:1px solid rgba(255,59,48,0.15); padding:10px; border-radius:var(–rs); line-height:1.45; }
+
+.tr-sec { flex:1; overflow-y:auto; padding:14px 18px; display:none; flex-direction:column; gap:8px; }
+.sec-lbl { font-size:10.5px; font-weight:600; color:var(–text3); text-transform:uppercase; letter-spacing:0.6px; }
+#tr-wrap { font-size:12.5px; line-height:1.65; color:var(–text2); background:var(–surface2); border-radius:var(–rs); padding:11px 13px; max-height:130px; overflow-y:auto; }
+#live-sp { color:var(–accent); }
+
+.hist-sec { padding:0 12px 14px; display:none; flex-direction:column; gap:7px; }
+.hist-sec .sec-lbl { padding:0 6px; }
+#hist-list { display:flex; flex-direction:column; gap:3px; max-height:190px; overflow-y:auto; }
+.hi { display:flex; align-items:center; justify-content:space-between; padding:9px 11px; border-radius:var(–rs); cursor:pointer; border:1.5px solid transparent; transition:all 0.15s; text-align:left; background:transparent; width:100%; font-family:inherit; }
+.hi:hover { background:var(–surface2); }
+.hi.on { background:rgba(0,113,227,0.06); border-color:rgba(0,113,227,0.2); }
+.hi-t { font-size:12.5px; font-weight:500; color:var(–text); max-width:148px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hi-l { font-size:10px; color:var(–accent); background:rgba(0,113,227,0.08); padding:2px 7px; border-radius:10px; font-weight:500; }
+
+/* RIGHT */
+.right { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:28px; gap:18px; }
+
+#sc {
+width:100%; max-width:780px; aspect-ratio:16/9;
+background:var(–slide-bg); border-radius:20px;
+box-shadow:0 8px 40px rgba(0,0,0,0.13), 0 0 0 1px rgba(0,0,0,0.05);
+overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center;
 }
-#mic-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+#si { width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:40px; }
 
-.status-row { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-#status-label { font-size: 0.85rem; font-weight: 600; color: #5a5448; transition: color 0.3s; }
+#emp { display:flex; flex-direction:column; align-items:center; gap:12px; opacity:0.4; }
+.emp-ic { width:60px; height:60px; border-radius:14px; border:1.5px dashed rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; font-size:22px; color:rgba(255,255,255,0.3); }
+.emp-tx { font-size:12.5px; color:rgba(255,255,255,0.3); text-align:center; line-height:1.5; }
 
-.waveform { display: flex; gap: 3px; align-items: center; height: 24px; }
-.wave-bar {
-width: 3px; border-radius: 2px; background: #2a2418; height: 4px;
-transition: background 0.3s;
+#gen {
+display:none; position:absolute; bottom:14px; right:14px; align-items:center; gap:6px;
+background:rgba(255,255,255,0.07); backdrop-filter:blur(10px);
+border:1px solid rgba(255,255,255,0.1); padding:5px 11px; border-radius:20px;
 }
-.waveform.active .wave-bar {
-background: #c8a96e;
-animation: wave 0.5s ease-in-out infinite alternate;
+.sp { width:12px; height:12px; border:1.5px solid rgba(255,255,255,0.18); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; }
+#gen span { font-size:11px; color:rgba(255,255,255,0.55); }
+
+.ltags { display:flex; gap:5px; flex-wrap:wrap; justify-content:center; }
+.lt { font-size:11px; color:var(–text3); background:var(–surface); border:1px solid var(–border); padding:3px 9px; border-radius:20px; }
+
+/* SLIDE INNER STYLES */
+.sc-wrap { display:flex; flex-direction:column; align-items:center; gap:13px; width:100%; animation:slideUp 0.45s cubic-bezier(0.16,1,0.3,1); }
+.s-title { font-family:‘Playfair Display’,serif; font-weight:700; color:#f5f5f7; text-align:center; line-height:1.2; letter-spacing:-0.025em; }
+.s-title.lg { font-size:clamp(1.9rem,4.5vw,3.1rem); }
+.s-title.md { font-size:clamp(1.2rem,2.8vw,2rem); }
+.s-sub { font-size:clamp(0.78rem,1.4vw,0.93rem); color:rgba(245,245,247,0.45); text-align:center; font-weight:400; }
+
+.s-bullets { list-style:none; display:flex; flex-direction:column; gap:8px; max-width:480px; width:100%; text-align:left; }
+.s-bullets li { display:flex; align-items:flex-start; gap:10px; color:rgba(245,245,247,0.82); font-size:clamp(0.76rem,1.35vw,0.9rem); line-height:1.45; animation:itemIn 0.4s both; }
+.bdot { width:5px; height:5px; border-radius:50%; background:#0a84ff; flex-shrink:0; margin-top:5px; }
+
+.s-metric { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.s-mval { font-family:‘Playfair Display’,serif; font-size:clamp(3rem,8vw,5.5rem); font-weight:800; color:#fff; letter-spacing:-0.04em; line-height:1; animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+.s-mlbl { font-size:clamp(0.8rem,1.5vw,1rem); color:rgba(245,245,247,0.45); }
+.s-mchg { font-size:0.8rem; color:#32d74b; background:rgba(50,215,75,0.1); padding:2px 10px; border-radius:20px; }
+
+.s-steps { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; max-width:560px; }
+.s-step { display:flex; flex-direction:column; align-items:center; gap:8px; flex:1 1 100px; animation:itemIn 0.4s both; }
+.s-snum { width:32px; height:32px; border-radius:50%; background:rgba(10,132,255,0.15); border:1.5px solid rgba(10,132,255,0.3); color:#0a84ff; font-size:0.84rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.s-stxt { font-size:0.8rem; color:rgba(245,245,247,0.72); text-align:center; line-height:1.4; }
+
+.s-quote { max-width:500px; display:flex; flex-direction:column; gap:12px; align-items:center; }
+.s-qbody { font-family:‘Playfair Display’,serif; font-size:clamp(0.95rem,2vw,1.2rem); color:rgba(245,245,247,0.9); font-style:italic; text-align:center; line-height:1.65; }
+.s-qmark { color:#0a84ff; font-size:2.8rem; line-height:0; vertical-align:-0.35em; margin-right:3px; font-style:normal; }
+.s-qauth { font-size:0.8rem; color:rgba(245,245,247,0.3); }
+
+.s-team { display:flex; gap:18px; flex-wrap:wrap; justify-content:center; }
+.s-tc { display:flex; flex-direction:column; align-items:center; gap:7px; animation:itemIn 0.4s both; }
+.s-tav { width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:#fff; border:2px solid rgba(255,255,255,0.08); }
+.s-tnm { font-size:0.87rem; color:#f5f5f7; font-weight:600; }
+.s-trl { font-size:0.74rem; color:rgba(245,245,247,0.35); }
+
+.s-tl { display:flex; flex-direction:column; gap:10px; max-width:440px; text-align:left; }
+.s-tlrow { display:flex; gap:14px; align-items:flex-start; animation:itemIn 0.4s both; }
+.s-tlyr { font-size:0.78rem; font-weight:600; color:#0a84ff; min-width:38px; padding-top:2px; }
+.s-tlev { flex:1; border-left:1px solid rgba(255,255,255,0.07); padding-left:12px; font-size:0.87rem; color:rgba(245,245,247,0.78); line-height:1.4; }
+
+.s-comp { display:flex; gap:12px; max-width:540px; }
+.s-cc { flex:1; border-radius:14px; padding:14px; animation:itemIn 0.4s both; }
+.s-cc.l { background:rgba(10,132,255,0.08); border:1px solid rgba(10,132,255,0.18); }
+.s-cc.r { background:rgba(50,215,75,0.06); border:1px solid rgba(50,215,75,0.18); }
+.s-clbl { font-size:0.82rem; font-weight:700; margin-bottom:8px; }
+.s-cc.l .s-clbl { color:#0a84ff; } .s-cc.r .s-clbl { color:#32d74b; }
+.s-cpt { font-size:0.77rem; color:rgba(245,245,247,0.65); margin:3px 0; }
+
+/* PRESENT MODE */
+#pm { display:none; position:fixed; inset:0; background:#000; z-index:200; flex-direction:column; }
+#pm.on { display:flex; }
+#pm-stage { flex:1; display:flex; align-items:center; justify-content:center; padding:20px; }
+#pm-canvas {
+width:min(920px,90vw); aspect-ratio:16/9;
+background:var(–slide-bg); border-radius:20px;
+box-shadow:0 40px 120px rgba(0,0,0,0.8);
+overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center;
 }
+#pm-inner { width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:50px; }
+#pm-bar { height:54px; background:rgba(18,18,18,0.92); backdrop-filter:blur(20px); border-top:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between; padding:0 26px; flex-shrink:0; }
+.pm-wv .wv-bar { background:rgba(255,255,255,0.18); }
+.pm-wv.on .wv-bar { background:#32d74b; animation:wave 0.7s ease-in-out infinite alternate; }
+#pm-st { font-size:12px; color:rgba(255,255,255,0.3); }
+.pm-btns { display:flex; gap:7px; }
+.pmb { padding:6px 14px; border-radius:20px; border:none; font-size:12px; font-weight:500; cursor:pointer; font-family:inherit; transition:opacity 0.15s; }
+.pmb:active { opacity:0.7; }
+.pmb-go { background:rgba(50,215,75,0.13); color:#32d74b; border:1px solid rgba(50,215,75,0.25); }
+.pmb-stop { background:rgba(255,59,48,0.13); color:#ff3b30; border:1px solid rgba(255,59,48,0.25); }
+.pmb-back { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.55); border:1px solid rgba(255,255,255,0.1); }
+#pm-cnt { font-size:12px; color:rgba(255,255,255,0.18); }
 
-.hint { color: #5a5448; font-size: 0.78rem; text-align: center; line-height: 1.5; }
-#error-box { display: none; color: #e06060; font-size: 0.78rem; text-align: center; background: rgba(224,96,96,0.07); border: 1px solid rgba(224,96,96,0.2); padding: 10px; border-radius: 8px; }
-
-/* TRANSCRIPT */
-.section-label { font-size: 0.72rem; color: #3a3328; text-transform: uppercase; letter-spacing: 0.1em; }
-#transcript-box {
-display: none; flex-direction: column; gap: 8px;
+@media(max-width:620px){
+.left{width:100%;max-height:42vh;border-right:none;border-bottom:1px solid var(–border);}
+.main{flex-direction:column;}
+.right{padding:14px;}
+#sc{border-radius:14px;}
 }
-#transcript-content {
-background: rgba(200,169,110,0.03); border: 1px solid rgba(200,169,110,0.08);
-border-radius: 10px; padding: 14px; font-size: 0.82rem; line-height: 1.6;
-max-height: 180px; overflow-y: auto; color: #7a7264;
-}
-#live-text { color: rgba(200,169,110,0.7); }
-
-/* SLIDE HISTORY */
-#history-box { display: none; flex-direction: column; gap: 8px; }
-#history-list { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
-.history-item {
-background: rgba(200,169,110,0.03); border: 1px solid rgba(200,169,110,0.08);
-border-radius: 8px; padding: 10px 12px; cursor: pointer;
-display: flex; justify-content: space-between; align-items: center;
-transition: all 0.2s; text-align: left; width: 100%;
-}
-.history-item:hover, .history-item.active {
-background: rgba(200,169,110,0.1); border-color: rgba(200,169,110,0.3);
-}
-.history-title { color: #d4cfc5; font-size: 0.82rem; font-weight: 600; }
-.history-layout { color: #c8a96e; font-size: 0.68rem; background: rgba(200,169,110,0.1); padding: 1px 6px; border-radius: 4px; }
-
-/* RIGHT PANEL */
-.right-panel {
-flex: 1; display: flex; flex-direction: column;
-align-items: center; justify-content: center;
-padding: 32px; gap: 20px; position: relative; overflow: hidden;
-}
-.right-panel::before {
-content: ‘’; position: absolute; inset: 0;
-background: radial-gradient(ellipse 60% 40% at 50% 50%, rgba(200,169,110,0.03) 0%, transparent 70%);
-animation: glow 4s ease-in-out infinite; pointer-events: none;
-}
-
-/* SLIDE CANVAS */
-#slide-canvas {
-width: 100%; max-width: 800px; aspect-ratio: 16/9;
-background: linear-gradient(145deg, #1a1510 0%, #141009 100%);
-border-radius: 16px; border: 1px solid rgba(200,169,110,0.12);
-box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(200,169,110,0.04);
-overflow: hidden; position: relative;
-display: flex; align-items: center; justify-content: center;
-}
-#slide-canvas::before {
-content: ‘’; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-background: linear-gradient(90deg, transparent, rgba(200,169,110,0.25), transparent);
-}
-
-#slide-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px; }
-
-#empty-state { display: flex; flex-direction: column; align-items: center; gap: 12px; opacity: 0.35; }
-.empty-frame { width: 100px; height: 70px; border-radius: 8px; border: 2px dashed rgba(200,169,110,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
-
-#generating-badge {
-display: none; position: absolute; top: 14px; right: 14px;
-align-items: center; gap: 6px;
-}
-.spinner { width: 16px; height: 16px; border: 2px solid rgba(200,169,110,0.2); border-top-color: #c8a96e; border-radius: 50%; animation: spin 0.7s linear infinite; }
-#generating-badge span { color: #c8a96e; font-size: 0.72rem; }
-
-/* LAYOUTS LEGEND */
-.layouts-legend { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
-.layout-tag { font-size: 0.68rem; color: #3a3328; background: rgba(200,169,110,0.04); border: 1px solid rgba(200,169,110,0.07); padding: 3px 8px; border-radius: 4px; }
-
-/* ── SLIDE CONTENT STYLES ── */
-.slide-title {
-font-family: ‘Playfair Display’, serif; font-weight: 700; color: #f0ece3;
-line-height: 1.15; text-align: center;
-text-shadow: 0 0 60px rgba(240,200,100,0.15);
-}
-.slide-subtitle { font-size: 1rem; color: #a09880; font-style: italic; text-align: center; }
-
-/* bullets */
-.bullets-list { list-style: none; display: flex; flex-direction: column; gap: 8px; text-align: left; max-width: 500px; }
-.bullets-list li { display: flex; align-items: flex-start; gap: 10px; color: #d4cfc5; font-size: 0.95rem; line-height: 1.4; }
-.bullets-list li::before { content: ‘›’; color: #c8a96e; font-size: 1.2rem; flex-shrink: 0; }
-
-/* metric */
-.metric-value { font-family: ‘Playfair Display’, serif; font-size: clamp(2.5rem,7vw,5rem); font-weight: 800; color: #c8a96e; line-height: 1; animation: scaleIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
-.metric-label { font-size: 1rem; color: #a09880; }
-.metric-change { font-size: 0.85rem; color: #7ecb8f; background: rgba(126,203,143,0.1); padding: 2px 10px; border-radius: 20px; }
-
-/* steps */
-.steps-wrap { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; max-width: 600px; }
-.step-item { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1 1 110px; }
-.step-num { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #c8a96e, #8b6914); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: #1a1510; }
-.step-text { font-size: 0.85rem; color: #d4cfc5; text-align: center; }
-
-/* quote */
-.quote-text { font-family: ‘Playfair Display’, serif; font-size: clamp(1rem,2.5vw,1.3rem); color: #e8e2d8; font-style: italic; line-height: 1.6; text-align: center; max-width: 520px; }
-.quote-author { color: #7a7264; font-size: 0.85rem; text-align: center; }
-
-/* team */
-.team-wrap { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
-.team-card { display: flex; flex-direction: column; align-items: center; gap: 7px; }
-.team-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #f0ece3; font-weight: 700; border: 2px solid rgba(200,169,110,0.3); }
-.team-name { color: #f0ece3; font-size: 0.9rem; font-weight: 600; }
-.team-role { color: #7a7264; font-size: 0.75rem; }
-
-/* timeline */
-.timeline-wrap { display: flex; flex-direction: column; gap: 10px; max-width: 460px; text-align: left; }
-.timeline-item { display: flex; gap: 14px; align-items: flex-start; }
-.timeline-year { color: #c8a96e; font-size: 0.82rem; font-weight: 700; min-width: 40px; }
-.timeline-event { flex: 1; border-left: 1px solid rgba(200,169,110,0.2); padding-left: 12px; color: #d4cfc5; font-size: 0.9rem; }
-
-/* comparison */
-.comparison-wrap { display: flex; gap: 14px; max-width: 560px; }
-.comp-side { flex: 1; border-radius: 10px; padding: 14px; }
-.comp-side.left { background: rgba(200,169,110,0.07); border: 1px solid rgba(200,169,110,0.2); }
-.comp-side.right { background: rgba(126,203,143,0.07); border: 1px solid rgba(126,203,143,0.2); }
-.comp-label { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
-.comp-side.left .comp-label { color: #c8a96e; }
-.comp-side.right .comp-label { color: #7ecb8f; }
-.comp-point { color: #c8c3b8; font-size: 0.82rem; margin: 3px 0; }
-
-/* ── PRESENT MODE ── */
-#present-mode {
-display: none; position: fixed; inset: 0; background: #0e0c09;
-flex-direction: column; z-index: 1000;
-}
-#present-mode.active { display: flex; }
-#present-stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
-#present-slide {
-width: min(900px, 90vw); aspect-ratio: 16/9;
-background: linear-gradient(145deg, #1a1510 0%, #141009 100%);
-border-radius: 16px; border: 1px solid rgba(200,169,110,0.12);
-box-shadow: 0 40px 120px rgba(0,0,0,0.8);
-overflow: hidden; position: relative;
-display: flex; align-items: center; justify-content: center;
-}
-#present-slide::before { content:’’; position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, transparent, rgba(200,169,110,0.3), transparent); }
-#present-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 48px; }
-#present-bar {
-display: flex; align-items: center; justify-content: space-between;
-padding: 14px 28px; background: rgba(14,12,9,0.9);
-backdrop-filter: blur(12px); border-top: 1px solid rgba(200,169,110,0.08);
-flex-shrink: 0;
-}
-.bar-btns { display: flex; gap: 8px; }
-.bar-btn {
-padding: 7px 16px; border-radius: 8px; border: none; cursor: pointer;
-font-family: ‘DM Sans’, sans-serif; font-size: 0.82rem; font-weight: 600;
-}
-.btn-stop { background: rgba(224,96,96,0.15); color: #e06060; border: 1px solid rgba(224,96,96,0.3); }
-.btn-start { background: rgba(126,203,143,0.15); color: #7ecb8f; border: 1px solid rgba(126,203,143,0.3); }
-.btn-back { background: transparent; color: #a09880; border: 1px solid rgba(200,169,110,0.2); }
-#slide-counter { color: #3a3328; font-size: 0.78rem; }
-
-/* RESPONSIVE */
-@media (max-width: 600px) {
-.left-panel { width: 100%; border-right: none; border-bottom: 1px solid rgba(200,169,110,0.08); max-height: 40vh; }
-.main { flex-direction: column; }
-.right-panel { padding: 16px; }
-}
-
-.slide-anim { animation: slideIn 0.4s cubic-bezier(0.16,1,0.3,1); }
-.fade-item { opacity: 0; animation: fadeUp 0.4s forwards; }
 </style>
 
 </head>
 <body>
 <div id="app">
-
-  <!-- HEADER -->
-
   <header>
-    <div class="logo">
-      <div class="logo-icon">🎤</div>
-      <span class="logo-name">VoiceSlide</span>
-      <span class="logo-badge">AI • Freestyle</span>
+    <div class="hd-left">
+      <div class="app-ico">🎤</div>
+      <span class="app-nm">VoiceSlide</span>
+      <span class="app-badge">AI</span>
     </div>
-    <button id="present-btn">▶ Presenta</button>
+    <button id="present-btn">▶&nbsp;Presenta</button>
   </header>
 
-  <!-- MAIN -->
-
   <div class="main">
+    <div class="left">
+      <div class="mic-sec">
+        <button id="mic-btn"><span id="mic-ic">🎤</span></button>
+        <div class="st-row">
+          <span id="st-txt">Tocca per iniziare</span>
+          <div class="wv-wrap" id="wv">
+            <div class="wv-bar" style="animation-delay:0s;animation-duration:.72s"></div>
+            <div class="wv-bar" style="animation-delay:.08s;animation-duration:.88s"></div>
+            <div class="wv-bar" style="animation-delay:.04s;animation-duration:.64s"></div>
+            <div class="wv-bar" style="animation-delay:.12s;animation-duration:.96s"></div>
+            <div class="wv-bar" style="animation-delay:.06s;animation-duration:.76s"></div>
+            <div class="wv-bar" style="animation-delay:.14s;animation-duration:.68s"></div>
+            <div class="wv-bar" style="animation-delay:.02s;animation-duration:.84s"></div>
+            <div class="wv-bar" style="animation-delay:.10s;animation-duration:.78s"></div>
+            <div class="wv-bar" style="animation-delay:.16s;animation-duration:.60s"></div>
+            <div class="wv-bar" style="animation-delay:.05s;animation-duration:.92s"></div>
+          </div>
+        </div>
+        <div id="err"></div>
+        <p id="hint">Premi il microfono e parla.<br>Le slide si generano da sole.</p>
+      </div>
 
 ```
-<!-- LEFT PANEL -->
-<div class="left-panel">
-  <div class="mic-area">
-    <button id="mic-btn">🎤</button>
-    <div class="status-row">
-      <span id="status-label">Pronto</span>
-      <div class="waveform" id="waveform">
-        <div class="wave-bar" style="animation-delay:0s"></div>
-        <div class="wave-bar" style="animation-delay:0.05s"></div>
-        <div class="wave-bar" style="animation-delay:0.1s"></div>
-        <div class="wave-bar" style="animation-delay:0.15s"></div>
-        <div class="wave-bar" style="animation-delay:0.2s"></div>
-        <div class="wave-bar" style="animation-delay:0.25s"></div>
-        <div class="wave-bar" style="animation-delay:0.3s"></div>
-        <div class="wave-bar" style="animation-delay:0.35s"></div>
-        <div class="wave-bar" style="animation-delay:0.4s"></div>
-        <div class="wave-bar" style="animation-delay:0.45s"></div>
-        <div class="wave-bar" style="animation-delay:0.5s"></div>
-        <div class="wave-bar" style="animation-delay:0.55s"></div>
-      </div>
-    </div>
-    <div id="error-box"></div>
-    <p class="hint" id="hint">Clicca e parla. L'AI genererà slide in tempo reale dalla tua voce.</p>
+  <div class="tr-sec" id="tr-sec">
+    <span class="sec-lbl">Trascrizione</span>
+    <div id="tr-wrap"><span id="tr-txt"></span><span id="live-sp"></span></div>
   </div>
 
-  <div id="transcript-box">
-    <span class="section-label">Trascrizione</span>
-    <div id="transcript-content">
-      <span id="transcript-text"></span>
-      <span id="live-text"></span>
-    </div>
-  </div>
-
-  <div id="history-box">
-    <span class="section-label">Slide generate (<span id="slide-count">0</span>)</span>
-    <div id="history-list"></div>
+  <div class="hist-sec" id="hist-sec">
+    <span class="sec-lbl">Slide (<span id="sc-cnt">0</span>)</span>
+    <div id="hist-list"></div>
   </div>
 </div>
 
-<!-- RIGHT PANEL -->
-<div class="right-panel">
-  <div id="slide-canvas">
-    <div id="slide-inner">
-      <div id="empty-state">
-        <div class="empty-frame">🖼</div>
-        <p style="color:#5a5448;font-size:0.82rem;text-align:center">Le slide appariranno qui mentre parli</p>
+<div class="right">
+  <div id="sc">
+    <div id="si">
+      <div id="emp">
+        <div class="emp-ic">✦</div>
+        <p class="emp-tx">Le slide appariranno qui<br>mentre parli</p>
       </div>
     </div>
-    <div id="generating-badge">
-      <div class="spinner"></div>
-      <span>Generando…</span>
-    </div>
+    <div id="gen"><div class="sp"></div><span>Generando…</span></div>
   </div>
-  <div class="layouts-legend">
-    <span class="layout-tag">tagline</span>
-    <span class="layout-tag">bullets</span>
-    <span class="layout-tag">metric</span>
-    <span class="layout-tag">steps</span>
-    <span class="layout-tag">quote</span>
-    <span class="layout-tag">team</span>
-    <span class="layout-tag">timeline</span>
-    <span class="layout-tag">comparison</span>
+  <div class="ltags">
+    <span class="lt">tagline</span><span class="lt">bullets</span><span class="lt">metric</span>
+    <span class="lt">steps</span><span class="lt">quote</span><span class="lt">team</span>
+    <span class="lt">timeline</span><span class="lt">comparison</span>
   </div>
 </div>
 ```
@@ -336,363 +261,208 @@ font-family: ‘DM Sans’, sans-serif; font-size: 0.82rem; font-weight: 600;
   </div>
 </div>
 
-<!-- PRESENT MODE -->
-
-<div id="present-mode">
-  <div id="present-stage">
-    <div id="present-slide">
-      <div id="present-inner"></div>
-    </div>
+<div id="pm">
+  <div id="pm-stage">
+    <div id="pm-canvas"><div id="pm-inner"></div></div>
   </div>
-  <div id="present-bar">
+  <div id="pm-bar">
     <div style="display:flex;align-items:center;gap:10px">
-      <div class="waveform" id="present-waveform">
-        <div class="wave-bar" style="animation-delay:0s"></div>
-        <div class="wave-bar" style="animation-delay:0.07s"></div>
-        <div class="wave-bar" style="animation-delay:0.14s"></div>
-        <div class="wave-bar" style="animation-delay:0.21s"></div>
-        <div class="wave-bar" style="animation-delay:0.28s"></div>
-        <div class="wave-bar" style="animation-delay:0.35s"></div>
-        <div class="wave-bar" style="animation-delay:0.42s"></div>
+      <div class="wv-wrap pm-wv" id="pm-wv">
+        <div class="wv-bar" style="animation-delay:0s;animation-duration:.72s"></div>
+        <div class="wv-bar" style="animation-delay:.08s;animation-duration:.88s"></div>
+        <div class="wv-bar" style="animation-delay:.04s;animation-duration:.64s"></div>
+        <div class="wv-bar" style="animation-delay:.12s;animation-duration:.96s"></div>
+        <div class="wv-bar" style="animation-delay:.06s;animation-duration:.76s"></div>
+        <div class="wv-bar" style="animation-delay:.14s;animation-duration:.68s"></div>
+        <div class="wv-bar" style="animation-delay:.02s;animation-duration:.84s"></div>
       </div>
-      <span id="present-status" style="color:#5a5448;font-size:0.82rem">Pronto</span>
+      <span id="pm-st">Pronto</span>
     </div>
-    <div class="bar-btns">
-      <button class="bar-btn btn-start" id="present-mic-btn">🎤 Parla</button>
-      <button class="bar-btn btn-back" id="back-btn">← Torna</button>
+    <div class="pm-btns">
+      <button class="pmb pmb-go" id="pm-mic">🎤&nbsp;Parla</button>
+      <button class="pmb pmb-back" id="pm-back">← Esci</button>
     </div>
-    <span id="slide-counter">Slide 0</span>
+    <span id="pm-cnt">0 slide</span>
   </div>
 </div>
 
 <script>
-const SYSTEM_PROMPT = `You are a real-time presentation AI. The user is speaking live. Based on their speech, generate ONE slide as JSON.
+const KEY = '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';
 
-Return ONLY a JSON object with this structure:
+const SYS = `You are a real-time presentation AI. Based on what the speaker says, generate ONE slide as a raw JSON object.
+NO markdown, NO backticks, NO explanation — only valid JSON.
+
 {
-  "layout": "tagline" | "bullets" | "metric" | "steps" | "quote" | "team" | "timeline" | "comparison",
-  "title": "string",
-  "subtitle": "string (optional)",
-  "content": <depends on layout>
+  "layout": "tagline"|"bullets"|"metric"|"steps"|"quote"|"team"|"timeline"|"comparison",
+  "title": "...",
+  "subtitle": "..." or null,
+  "content": ...
 }
 
-Layout content rules:
-- tagline: content = null
-- bullets: content = ["bullet 1", "bullet 2", "bullet 3"] (2-5 items)
-- metric: content = { "value": "50M", "label": "active users", "change": "+12%" }
-- steps: content = ["Step one", "Step two", "Step three"] (2-4 steps)
-- quote: content = { "text": "The quote text", "author": "Name" }
-- team: content = [{ "name": "Alice", "role": "CEO" }, { "name": "Bob", "role": "CTO" }]
-- timeline: content = [{ "year": "2020", "event": "Founded" }, ...]
-- comparison: content = { "left": { "label": "Option A", "points": ["p1","p2"] }, "right": { "label": "Option B", "points": ["p1","p2"] } }
+Content rules:
+- tagline: null
+- bullets: ["item","item"] (2-5)
+- metric: {"value":"50M","label":"users","change":"+10%"}
+- steps: ["step1","step2"] (2-4)
+- quote: {"text":"...","author":"Name"}
+- team: [{"name":"Alice","role":"CEO"},...] (2-4)
+- timeline: [{"year":"2020","event":"Founded"},...] (3-5)
+- comparison: {"left":{"label":"A","points":["x","y"]},"right":{"label":"B","points":["x","y"]}}
 
-Pick the layout that best matches what the speaker is saying.
-If numbers → metric. Lists → bullets. Story/history → timeline. Comparing → comparison. Inspirational → quote. People → team. Process → steps. Opening/closing → tagline.
+Mapping: numbers→metric, list→bullets, process→steps, people→team, history→timeline, compare→comparison, inspiring→quote, open/close→tagline.`;
 
-Respond ONLY with JSON. No markdown, no explanation, no backticks.`;
+let listening=false, slides=[], curIdx=-1, fullTr='', buf='', lastGen='', timer=null, rec=null;
 
-// ── State ──
-let isListening = false;
-let slides = [];
-let currentSlideIdx = -1;
-let transcript = "";
-let bufferText = "";
-let lastGenerated = "";
-let generateTimer = null;
-let recognition = null;
+const $=id=>document.getElementById(id);
+const micBtn=$('mic-btn'), micIc=$('mic-ic'), stTxt=$('st-txt');
+const wv=$('wv'), pmWv=$('pm-wv');
+const errEl=$('err'), hintEl=$('hint');
+const trSec=$('tr-sec'), trTxt=$('tr-txt'), liveSp=$('live-sp');
+const histSec=$('hist-sec'), histList=$('hist-list'), scCnt=$('sc-cnt');
+const si=$('si'), genBadge=$('gen'), presentBtn=$('present-btn');
+const pm=$('pm'), pmInner=$('pm-inner'), pmMic=$('pm-mic'), pmBack=$('pm-back');
+const pmSt=$('pm-st'), pmCnt=$('pm-cnt');
 
-// ── DOM refs ──
-const micBtn = document.getElementById('mic-btn');
-const statusLabel = document.getElementById('status-label');
-const waveform = document.getElementById('waveform');
-const presentWaveform = document.getElementById('present-waveform');
-const errorBox = document.getElementById('error-box');
-const hintEl = document.getElementById('hint');
-const transcriptBox = document.getElementById('transcript-box');
-const transcriptText = document.getElementById('transcript-text');
-const liveText = document.getElementById('live-text');
-const historyBox = document.getElementById('history-box');
-const historyList = document.getElementById('history-list');
-const slideCount = document.getElementById('slide-count');
-const slideInner = document.getElementById('slide-inner');
-const emptyState = document.getElementById('empty-state');
-const generatingBadge = document.getElementById('generating-badge');
-const presentBtn = document.getElementById('present-btn');
-const presentMode = document.getElementById('present-mode');
-const presentInner = document.getElementById('present-inner');
-const presentMicBtn = document.getElementById('present-mic-btn');
-const backBtn = document.getElementById('back-btn');
-const slideCounter = document.getElementById('slide-counter');
-const presentStatus = document.getElementById('present-status');
+const AVCOLORS=['#0071e3','#34c759','#ff9500','#ff2d55','#af52de','#5856d6'];
 
-// ── Init Speech Recognition ──
-function initSpeech() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    errorBox.textContent = "⚠️ Speech Recognition non supportato. Usa Chrome su desktop.";
-    errorBox.style.display = 'block';
-    micBtn.disabled = true;
-    return;
-  }
-  recognition = new SR();
-  recognition.continuous = true;
-  recognition.interimResults = true;
-  recognition.lang = 'it-IT';
-
-  recognition.onresult = (e) => {
-    let interim = '', final = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      const t = e.results[i][0].transcript;
-      if (e.results[i].isFinal) final += t;
-      else interim += t;
+function initSpeech(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ errEl.textContent='⚠️ Usa Chrome su desktop per il riconoscimento vocale.'; errEl.style.display='block'; micBtn.disabled=true; return; }
+  rec=new SR(); rec.continuous=true; rec.interimResults=true; rec.lang='it-IT';
+  rec.onresult=ev=>{
+    let fin='',int='';
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const t=ev.results[i][0].transcript;
+      ev.results[i].isFinal?(fin+=t):(int+=t);
     }
-    if (final) {
-      bufferText += ' ' + final;
-      transcript += ' ' + final;
-      transcriptText.textContent = transcript;
-      transcriptBox.style.display = 'flex';
-    }
-    liveText.textContent = interim ? ' ' + interim : '';
-
-    clearTimeout(generateTimer);
-    const wordCount = bufferText.trim().split(/\s+/).filter(Boolean).length;
-    if (wordCount >= 5) {
-      generateTimer = setTimeout(() => {
-        const chunk = bufferText.trim();
-        if (chunk && chunk !== lastGenerated) {
-          generateSlide(chunk);
-          lastGenerated = chunk;
-          bufferText = '';
-        }
-      }, 2000);
+    if(fin){ buf+=' '+fin; fullTr+=' '+fin; trTxt.textContent=fullTr.trim(); trSec.style.display='flex'; }
+    liveSp.textContent=int?' '+int:'';
+    clearTimeout(timer);
+    if(buf.trim().split(/\s+/).filter(Boolean).length>=5){
+      timer=setTimeout(()=>{ const c=buf.trim(); if(c&&c!==lastGen){genSlide(c);lastGen=c;buf='';} },2300);
     }
   };
-
-  recognition.onerror = (e) => {
-    if (e.error !== 'no-speech') {
-      setStatus('error');
-      errorBox.textContent = `Errore microfono: ${e.error}`;
-      errorBox.style.display = 'block';
-    }
-  };
-
-  recognition.onend = () => {
-    if (isListening) recognition.start(); // auto-restart
-  };
+  rec.onerror=ev=>{ if(ev.error!=='no-speech') setSt('Errore: '+ev.error,'#ff3b30'); };
+  rec.onend=()=>{ if(listening) rec.start(); };
 }
 
-// ── Status ──
-const statusColors = { idle: '#5a5448', listening: '#7ecb8f', generating: '#c8a96e', error: '#e06060' };
-const statusTexts = { idle: 'Pronto', listening: 'In ascolto…', generating: 'Generando slide…', error: 'Errore' };
+function setSt(t,c='#6e6e73'){ stTxt.textContent=t; stTxt.style.color=c; pmSt.textContent=t; pmSt.style.color=c==='#6e6e73'?'rgba(255,255,255,0.3)':c; }
+function setWave(on){ wv.className=on?'wv-wrap on':'wv-wrap'; pmWv.className=on?'wv-wrap pm-wv on':'wv-wrap pm-wv'; }
 
-function setStatus(s) {
-  statusLabel.textContent = statusTexts[s];
-  statusLabel.style.color = statusColors[s];
-  presentStatus.textContent = statusTexts[s];
-  presentStatus.style.color = statusColors[s];
-}
-
-function setListeningUI(active) {
-  isListening = active;
-  micBtn.className = active ? 'listening' : '';
-  micBtn.textContent = active ? '⏹' : '🎤';
-  waveform.className = active ? 'waveform active' : 'waveform';
-  presentWaveform.className = active ? 'waveform active' : 'waveform';
-  presentMicBtn.className = active ? 'bar-btn btn-stop' : 'bar-btn btn-start';
-  presentMicBtn.textContent = active ? '⏹ Stop' : '🎤 Parla';
-  hintEl.style.display = active ? 'none' : 'block';
-  if (active) setStatus('listening');
-  else setStatus('idle');
-}
-
-// ── Toggle Mic ──
-function toggleMic() {
-  if (!recognition) return;
-  if (isListening) {
-    recognition.stop();
-    setListeningUI(false);
-    liveText.textContent = '';
+function toggleMic(){
+  if(!rec) return;
+  if(listening){
+    rec.stop(); listening=false;
+    micBtn.className=''; micIc.textContent='🎤';
+    pmMic.className='pmb pmb-go'; pmMic.textContent='🎤\u00a0Parla';
+    setWave(false); setSt('Tocca per iniziare'); liveSp.textContent=''; hintEl.style.display='block';
   } else {
-    transcript = '';
-    bufferText = '';
-    lastGenerated = '';
-    slides = [];
-    currentSlideIdx = -1;
-    transcriptText.textContent = '';
-    historyList.innerHTML = '';
-    historyBox.style.display = 'none';
-    presentBtn.style.display = 'none';
-    slideCount.textContent = '0';
-    slideCounter.textContent = 'Slide 0';
-    showEmptyState();
-    recognition.start();
-    setListeningUI(true);
+    fullTr='';buf='';lastGen='';slides=[];curIdx=-1;
+    trTxt.textContent=''; histList.innerHTML=''; histSec.style.display='none';
+    scCnt.textContent='0'; pmCnt.textContent='0 slide'; presentBtn.style.display='none';
+    showEmp(); errEl.style.display='none';
+    rec.start(); listening=true;
+    micBtn.className='listening'; micIc.textContent='⏹';
+    pmMic.className='pmb pmb-stop'; pmMic.textContent='⏹\u00a0Stop';
+    setWave(true); setSt('In ascolto…','#34c759'); hintEl.style.display='none';
   }
 }
+micBtn.addEventListener('click',toggleMic);
+pmMic.addEventListener('click',toggleMic);
 
-micBtn.addEventListener('click', toggleMic);
-presentMicBtn.addEventListener('click', toggleMic);
-
-// ── Generate Slide ──
-async function generateSlide(text) {
-  generatingBadge.style.display = 'flex';
-  setStatus('generating');
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: `Speaker said: "${text}"` }]
-      })
+async function genSlide(text){
+  genBadge.style.display='flex'; setSt('Generando…','#0071e3');
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:SYS,messages:[{role:'user',content:`Speaker: "${text}"`}]})
     });
-    const data = await res.json();
-    const raw = (data.content || []).map(b => b.text || '').join('');
-    const clean = raw.replace(/```json|```/g, '').trim();
-    const slide = JSON.parse(clean);
-    slide.id = Date.now();
-    slides.push(slide);
-    currentSlideIdx = slides.length - 1;
-    renderSlide(slide, slideInner);
-    renderSlide(slide, presentInner);
-    addToHistory(slide, currentSlideIdx);
-    presentBtn.style.display = 'block';
-    slideCount.textContent = slides.length;
-    slideCounter.textContent = `Slide ${slides.length}`;
-    emptyState && (emptyState.style.display = 'none');
-    setStatus('listening');
-  } catch(err) {
-    console.error(err);
-    setStatus('listening');
-  } finally {
-    generatingBadge.style.display = 'none';
-  }
+    const d=await r.json();
+    if(d.error) throw new Error(d.error.message);
+    const raw=(d.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    const slide=JSON.parse(raw);
+    slide.id=Date.now();
+    slides.push(slide); curIdx=slides.length-1;
+    renderSlide(slide,si); renderSlide(slide,pmInner);
+    addHist(slide,curIdx);
+    presentBtn.style.display='block';
+    scCnt.textContent=slides.length; pmCnt.textContent=slides.length+' slide';
+    setSt('In ascolto…','#34c759');
+  } catch(e){ console.error(e); setSt('Errore — riprovo…','#ff3b30'); setTimeout(()=>setSt('In ascolto…','#34c759'),2200); }
+  finally { genBadge.style.display='none'; }
 }
 
-// ── Render Slide ──
-function renderSlide(slide, container) {
-  const { layout, title, subtitle, content } = slide;
-  let html = `<div class="slide-anim" style="display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;text-align:center;">`;
+function renderSlide(slide,container){
+  const {layout,title,subtitle,content}=slide;
+  const big=layout==='tagline';
+  let h=`<div class="sc-wrap">`;
+  h+=`<h1 class="s-title ${big?'lg':'md'}">${e(title)}</h1>`;
+  if(subtitle) h+=`<p class="s-sub">${e(subtitle)}</p>`;
 
-  const titleSize = layout === 'tagline' ? 'clamp(1.8rem,4.5vw,3rem)' : 'clamp(1.2rem,2.5vw,2rem)';
-  html += `<h1 class="slide-title" style="font-size:${titleSize}">${esc(title)}</h1>`;
-  if (subtitle) html += `<p class="slide-subtitle">${esc(subtitle)}</p>`;
-
-  if (layout === 'bullets' && Array.isArray(content)) {
-    html += `<ul class="bullets-list">`;
-    content.forEach((b,i) => {
-      html += `<li class="fade-item" style="animation-delay:${i*0.08}s">${esc(b)}</li>`;
+  if(layout==='bullets'&&Array.isArray(content)){
+    h+=`<ul class="s-bullets">`;
+    content.forEach((b,i)=>h+=`<li style="animation-delay:${i*.07}s"><span class="bdot"></span>${e(b)}</li>`);
+    h+=`</ul>`;
+  }
+  if(layout==='metric'&&content){
+    h+=`<div class="s-metric"><span class="s-mval">${e(content.value||'')}</span><span class="s-mlbl">${e(content.label||'')}</span>${content.change?`<span class="s-mchg">${e(content.change)}</span>`:''}</div>`;
+  }
+  if(layout==='steps'&&Array.isArray(content)){
+    h+=`<div class="s-steps">`;
+    content.forEach((s,i)=>h+=`<div class="s-step" style="animation-delay:${i*.09}s"><div class="s-snum">${i+1}</div><span class="s-stxt">${e(s)}</span></div>`);
+    h+=`</div>`;
+  }
+  if(layout==='quote'&&content){
+    h+=`<div class="s-quote"><p class="s-qbody"><span class="s-qmark">"</span>${e(content.text||'')}</p>${content.author?`<p class="s-qauth">— ${e(content.author)}</p>`:''}</div>`;
+  }
+  if(layout==='team'&&Array.isArray(content)){
+    h+=`<div class="s-team">`;
+    content.forEach((p,i)=>h+=`<div class="s-tc" style="animation-delay:${i*.09}s"><div class="s-tav" style="background:${AVCOLORS[i%AVCOLORS.length]}">${e((p.name||'?')[0])}</div><span class="s-tnm">${e(p.name||'')}</span><span class="s-trl">${e(p.role||'')}</span></div>`);
+    h+=`</div>`;
+  }
+  if(layout==='timeline'&&Array.isArray(content)){
+    h+=`<div class="s-tl">`;
+    content.forEach((ev,i)=>h+=`<div class="s-tlrow" style="animation-delay:${i*.07}s"><span class="s-tlyr">${e(ev.year||'')}</span><span class="s-tlev">${e(ev.event||'')}</span></div>`);
+    h+=`</div>`;
+  }
+  if(layout==='comparison'&&content){
+    h+=`<div class="s-comp">`;
+    ['left','right'].forEach((side,i)=>{
+      const d=content[side]||{};
+      h+=`<div class="s-cc ${side==='left'?'l':'r'}" style="animation-delay:${i*.1}s"><div class="s-clbl">${e(d.label||'')}</div>${(d.points||[]).map(p=>`<p class="s-cpt">• ${e(p)}</p>`).join('')}</div>`;
     });
-    html += `</ul>`;
+    h+=`</div>`;
   }
-
-  if (layout === 'metric' && content) {
-    html += `<div style="display:flex;flex-direction:column;align-items:center;gap:6px">
-      <span class="metric-value">${esc(content.value||'')}</span>
-      <span class="metric-label">${esc(content.label||'')}</span>
-      ${content.change ? `<span class="metric-change">${esc(content.change)}</span>` : ''}
-    </div>`;
-  }
-
-  if (layout === 'steps' && Array.isArray(content)) {
-    html += `<div class="steps-wrap">`;
-    content.forEach((s,i) => {
-      html += `<div class="step-item fade-item" style="animation-delay:${i*0.1}s">
-        <div class="step-num">${i+1}</div>
-        <span class="step-text">${esc(s)}</span>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-
-  if (layout === 'quote' && content) {
-    html += `<div style="max-width:500px">
-      <p class="quote-text"><span style="color:#c8a96e;font-size:2.5rem;line-height:0;vertical-align:-0.4em;margin-right:4px">"</span>${esc(content.text||'')}</p>
-      ${content.author ? `<p class="quote-author" style="margin-top:12px">— ${esc(content.author)}</p>` : ''}
-    </div>`;
-  }
-
-  if (layout === 'team' && Array.isArray(content)) {
-    const colors = ['#3a2a4a','#1a3a2a','#3a2a1a','#1a2a3a'];
-    html += `<div class="team-wrap">`;
-    content.forEach((p,i) => {
-      html += `<div class="team-card fade-item" style="animation-delay:${i*0.1}s">
-        <div class="team-avatar" style="background:${colors[i%colors.length]}">${(p.name||'?')[0]}</div>
-        <span class="team-name">${esc(p.name||'')}</span>
-        <span class="team-role">${esc(p.role||'')}</span>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-
-  if (layout === 'timeline' && Array.isArray(content)) {
-    html += `<div class="timeline-wrap">`;
-    content.forEach((ev,i) => {
-      html += `<div class="timeline-item fade-item" style="animation-delay:${i*0.08}s">
-        <span class="timeline-year">${esc(ev.year||'')}</span>
-        <span class="timeline-event">${esc(ev.event||'')}</span>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-
-  if (layout === 'comparison' && content) {
-    html += `<div class="comparison-wrap">`;
-    ['left','right'].forEach((side,i) => {
-      const d = content[side]||{};
-      html += `<div class="comp-side ${side} fade-item" style="animation-delay:${i*0.12}s">
-        <div class="comp-label">${esc(d.label||'')}</div>
-        ${(d.points||[]).map(p=>`<p class="comp-point">• ${esc(p)}</p>`).join('')}
-      </div>`;
-    });
-    html += `</div>`;
-  }
-
-  html += `</div>`;
-  container.innerHTML = html;
+  h+=`</div>`;
+  container.innerHTML=h;
 }
 
-function showEmptyState() {
-  slideInner.innerHTML = `<div id="empty-state" class="empty-frame-wrap" style="display:flex;flex-direction:column;align-items:center;gap:12px;opacity:0.35">
-    <div class="empty-frame">🖼</div>
-    <p style="color:#5a5448;font-size:0.82rem;text-align:center">Le slide appariranno qui mentre parli</p>
-  </div>`;
-}
+function showEmp(){ si.innerHTML=`<div id="emp"><div class="emp-ic">✦</div><p class="emp-tx">Le slide appariranno qui<br>mentre parli</p></div>`; }
 
-function addToHistory(slide, idx) {
-  historyBox.style.display = 'flex';
-  const btn = document.createElement('button');
-  btn.className = 'history-item active';
-  btn.dataset.idx = idx;
-  btn.innerHTML = `<span class="history-title">${esc(slide.title?.slice(0,28))}${(slide.title?.length||0)>28?'…':''}</span>
-    <span class="history-layout">${esc(slide.layout)}</span>`;
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.history-item').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const s = slides[parseInt(btn.dataset.idx)];
-    renderSlide(s, slideInner);
-    renderSlide(s, presentInner);
+function addHist(slide,idx){
+  histSec.style.display='flex';
+  document.querySelectorAll('.hi').forEach(b=>b.classList.remove('on'));
+  const btn=document.createElement('button');
+  btn.className='hi on'; btn.dataset.i=idx;
+  const t=(slide.title||'').slice(0,25);
+  btn.innerHTML=`<span class="hi-t">${e(t)}${(slide.title||'').length>25?'…':''}</span><span class="hi-l">${e(slide.layout)}</span>`;
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.hi').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    const s=slides[+btn.dataset.i];
+    renderSlide(s,si); renderSlide(s,pmInner);
   });
-  document.querySelectorAll('.history-item').forEach(b => b.classList.remove('active'));
-  historyList.appendChild(btn);
+  histList.appendChild(btn);
+  histList.scrollTop=histList.scrollHeight;
 }
 
-function esc(str) {
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function e(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// ── Present Mode ──
-presentBtn.addEventListener('click', () => {
-  presentMode.classList.add('active');
-  if (currentSlideIdx >= 0) renderSlide(slides[currentSlideIdx], presentInner);
-});
-backBtn.addEventListener('click', () => {
-  presentMode.classList.remove('active');
-});
+presentBtn.addEventListener('click',()=>{ pm.classList.add('on'); if(curIdx>=0) renderSlide(slides[curIdx],pmInner); });
+pmBack.addEventListener('click',()=>pm.classList.remove('on'));
+document.addEventListener('keydown',ev=>{ if(ev.key==='Escape') pm.classList.remove('on'); });
 
-// ── Init ──
 initSpeech();
 </script>
 
