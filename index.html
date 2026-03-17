@@ -2,475 +2,1127 @@
 
 <html lang="it">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>VoiceSlide</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SLIDE LIVE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f5f5f7;
-    --surface: #ffffff;
-    --surface2: #f5f5f7;
-    --border: rgba(0,0,0,0.08);
-    --text: #1d1d1f;
-    --text2: #6e6e73;
-    --text3: #aeaeb2;
-    --accent: #0071e3;
-    --green: #34c759;
-    --red: #ff3b30;
-    --slide-bg: #1d1d1f;
-    --r: 18px; --rs: 12px;
+    --bg: #080a0f;
+    --panel: #0d1117;
+    --border: #1e2530;
+    --accent: #00e5ff;
+    --accent2: #7c3aed;
+    --accent3: #f59e0b;
+    --text: #e8edf5;
+    --muted: #4a5568;
+    --slide-bg: #0d1117;
+    --red: #ef4444;
   }
-  *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
-  html, body { height:100%; background:var(--bg); color:var(--text); font-family:-apple-system,'Helvetica Neue',sans-serif; -webkit-font-smoothing:antialiased; }
-  ::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.12); border-radius:3px; }
 
-@keyframes slideUp { from{opacity:0;transform:translateY(20px) scale(0.98)} to{opacity:1;transform:none} }
-@keyframes popIn { from{opacity:0;transform:scale(0.7)} to{opacity:1;transform:scale(1)} }
-@keyframes itemIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:none} }
-@keyframes spin { to{transform:rotate(360deg)} }
-@keyframes wave { 0%,100%{transform:scaleY(0.25)} 50%{transform:scaleY(1)} }
-@keyframes ripple { 0%{box-shadow:0 0 0 0 rgba(0,113,227,0.25)} 70%{box-shadow:0 0 0 18px rgba(0,113,227,0)} 100%{box-shadow:0 0 0 0 rgba(0,113,227,0)} }
-@keyframes rippleRed { 0%{box-shadow:0 0 0 0 rgba(255,59,48,0.25)} 70%{box-shadow:0 0 0 18px rgba(255,59,48,0)} 100%{box-shadow:0 0 0 0 rgba(255,59,48,0)} }
+- { margin: 0; padding: 0; box-sizing: border-box; }
 
-#app { height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘DM Sans’, sans-serif;
+height: 100vh;
+overflow: hidden;
+display: flex;
+flex-direction: column;
+}
 
 /* HEADER */
 header {
-height:52px; flex-shrink:0;
-background:rgba(245,245,247,0.85); backdrop-filter:blur(20px);
-border-bottom:1px solid var(–border);
-display:flex; align-items:center; justify-content:space-between; padding:0 24px;
-position:relative; z-index:10;
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 16px 28px;
+border-bottom: 1px solid var(–border);
+background: rgba(13,17,23,0.95);
+backdrop-filter: blur(12px);
+z-index: 100;
+flex-shrink: 0;
 }
-.hd-left { display:flex; align-items:center; gap:9px; }
-.app-ico { width:28px; height:28px; border-radius:7px; background:linear-gradient(145deg,#0a84ff,#0055b3); display:flex; align-items:center; justify-content:center; font-size:14px; box-shadow:0 2px 8px rgba(0,113,227,0.28); }
-.app-nm { font-size:15px; font-weight:600; letter-spacing:-0.3px; }
-.app-badge { font-size:10px; color:var(–accent); background:rgba(0,113,227,0.08); padding:2px 8px; border-radius:20px; font-weight:500; }
-#present-btn { display:none; padding:6px 16px; border-radius:20px; background:var(–accent); color:#fff; border:none; font-size:13px; font-weight:500; cursor:pointer; font-family:inherit; letter-spacing:-0.2px; transition:background 0.15s,transform 0.1s; }
-#present-btn:hover { background:#005bbf; } #present-btn:active { transform:scale(0.96); }
 
-/* LAYOUT */
-.main { flex:1; display:flex; overflow:hidden; }
-
-/* LEFT */
-.left { width:272px; flex-shrink:0; background:var(–surface); border-right:1px solid var(–border); display:flex; flex-direction:column; overflow:hidden; }
-
-.mic-sec { padding:28px 20px 22px; display:flex; flex-direction:column; align-items:center; gap:16px; border-bottom:1px solid var(–border); }
-#mic-btn {
-width:72px; height:72px; border-radius:50%; border:none; cursor:pointer; font-size:26px; outline:none;
-background:rgba(0,113,227,0.07); transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-display:flex; align-items:center; justify-content:center;
-animation:ripple 2.5s infinite;
+.logo {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 26px;
+letter-spacing: 4px;
+background: linear-gradient(90deg, var(–accent), var(–accent2));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
 }
-#mic-btn.listening { background:rgba(255,59,48,0.09); animation:rippleRed 1.8s infinite; }
-#mic-btn:hover { transform:scale(1.06); } #mic-btn:active { transform:scale(0.93); }
-#mic-btn:disabled { opacity:0.35; cursor:not-allowed; transform:none; animation:none; }
 
-.st-row { display:flex; flex-direction:column; align-items:center; gap:8px; }
-#st-txt { font-size:13px; font-weight:500; color:var(–text2); transition:color 0.3s; }
-
-.wv-wrap { display:flex; align-items:center; gap:2.5px; height:18px; }
-.wv-bar { width:2.5px; border-radius:2px; background:var(–text3); height:4px; transition:background 0.3s; }
-.wv-wrap.on .wv-bar { background:var(–accent); animation:wave 0.7s ease-in-out infinite alternate; }
-
-#hint { font-size:12px; color:var(–text3); text-align:center; line-height:1.55; padding:0 6px; }
-#err { display:none; font-size:12px; color:var(–red); text-align:center; background:rgba(255,59,48,0.06); border:1px solid rgba(255,59,48,0.15); padding:10px; border-radius:var(–rs); line-height:1.45; }
-
-.tr-sec { flex:1; overflow-y:auto; padding:14px 18px; display:none; flex-direction:column; gap:8px; }
-.sec-lbl { font-size:10.5px; font-weight:600; color:var(–text3); text-transform:uppercase; letter-spacing:0.6px; }
-#tr-wrap { font-size:12.5px; line-height:1.65; color:var(–text2); background:var(–surface2); border-radius:var(–rs); padding:11px 13px; max-height:130px; overflow-y:auto; }
-#live-sp { color:var(–accent); }
-
-.hist-sec { padding:0 12px 14px; display:none; flex-direction:column; gap:7px; }
-.hist-sec .sec-lbl { padding:0 6px; }
-#hist-list { display:flex; flex-direction:column; gap:3px; max-height:190px; overflow-y:auto; }
-.hi { display:flex; align-items:center; justify-content:space-between; padding:9px 11px; border-radius:var(–rs); cursor:pointer; border:1.5px solid transparent; transition:all 0.15s; text-align:left; background:transparent; width:100%; font-family:inherit; }
-.hi:hover { background:var(–surface2); }
-.hi.on { background:rgba(0,113,227,0.06); border-color:rgba(0,113,227,0.2); }
-.hi-t { font-size:12.5px; font-weight:500; color:var(–text); max-width:148px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.hi-l { font-size:10px; color:var(–accent); background:rgba(0,113,227,0.08); padding:2px 7px; border-radius:10px; font-weight:500; }
-
-/* RIGHT */
-.right { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:28px; gap:18px; }
-
-#sc {
-width:100%; max-width:780px; aspect-ratio:16/9;
-background:var(–slide-bg); border-radius:20px;
-box-shadow:0 8px 40px rgba(0,0,0,0.13), 0 0 0 1px rgba(0,0,0,0.05);
-overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center;
+.logo span {
+background: linear-gradient(90deg, var(–accent3), var(–red));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
 }
-#si { width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:40px; }
 
-#emp { display:flex; flex-direction:column; align-items:center; gap:12px; opacity:0.4; }
-.emp-ic { width:60px; height:60px; border-radius:14px; border:1.5px dashed rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; font-size:22px; color:rgba(255,255,255,0.3); }
-.emp-tx { font-size:12.5px; color:rgba(255,255,255,0.3); text-align:center; line-height:1.5; }
-
-#gen {
-display:none; position:absolute; bottom:14px; right:14px; align-items:center; gap:6px;
-background:rgba(255,255,255,0.07); backdrop-filter:blur(10px);
-border:1px solid rgba(255,255,255,0.1); padding:5px 11px; border-radius:20px;
+.status-bar {
+display: flex;
+align-items: center;
+gap: 20px;
 }
-.sp { width:12px; height:12px; border:1.5px solid rgba(255,255,255,0.18); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; }
-#gen span { font-size:11px; color:rgba(255,255,255,0.55); }
 
-.ltags { display:flex; gap:5px; flex-wrap:wrap; justify-content:center; }
-.lt { font-size:11px; color:var(–text3); background:var(–surface); border:1px solid var(–border); padding:3px 9px; border-radius:20px; }
-
-/* SLIDE INNER STYLES */
-.sc-wrap { display:flex; flex-direction:column; align-items:center; gap:13px; width:100%; animation:slideUp 0.45s cubic-bezier(0.16,1,0.3,1); }
-.s-title { font-family:‘Playfair Display’,serif; font-weight:700; color:#f5f5f7; text-align:center; line-height:1.2; letter-spacing:-0.025em; }
-.s-title.lg { font-size:clamp(1.9rem,4.5vw,3.1rem); }
-.s-title.md { font-size:clamp(1.2rem,2.8vw,2rem); }
-.s-sub { font-size:clamp(0.78rem,1.4vw,0.93rem); color:rgba(245,245,247,0.45); text-align:center; font-weight:400; }
-
-.s-bullets { list-style:none; display:flex; flex-direction:column; gap:8px; max-width:480px; width:100%; text-align:left; }
-.s-bullets li { display:flex; align-items:flex-start; gap:10px; color:rgba(245,245,247,0.82); font-size:clamp(0.76rem,1.35vw,0.9rem); line-height:1.45; animation:itemIn 0.4s both; }
-.bdot { width:5px; height:5px; border-radius:50%; background:#0a84ff; flex-shrink:0; margin-top:5px; }
-
-.s-metric { display:flex; flex-direction:column; align-items:center; gap:6px; }
-.s-mval { font-family:‘Playfair Display’,serif; font-size:clamp(3rem,8vw,5.5rem); font-weight:800; color:#fff; letter-spacing:-0.04em; line-height:1; animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
-.s-mlbl { font-size:clamp(0.8rem,1.5vw,1rem); color:rgba(245,245,247,0.45); }
-.s-mchg { font-size:0.8rem; color:#32d74b; background:rgba(50,215,75,0.1); padding:2px 10px; border-radius:20px; }
-
-.s-steps { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; max-width:560px; }
-.s-step { display:flex; flex-direction:column; align-items:center; gap:8px; flex:1 1 100px; animation:itemIn 0.4s both; }
-.s-snum { width:32px; height:32px; border-radius:50%; background:rgba(10,132,255,0.15); border:1.5px solid rgba(10,132,255,0.3); color:#0a84ff; font-size:0.84rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
-.s-stxt { font-size:0.8rem; color:rgba(245,245,247,0.72); text-align:center; line-height:1.4; }
-
-.s-quote { max-width:500px; display:flex; flex-direction:column; gap:12px; align-items:center; }
-.s-qbody { font-family:‘Playfair Display’,serif; font-size:clamp(0.95rem,2vw,1.2rem); color:rgba(245,245,247,0.9); font-style:italic; text-align:center; line-height:1.65; }
-.s-qmark { color:#0a84ff; font-size:2.8rem; line-height:0; vertical-align:-0.35em; margin-right:3px; font-style:normal; }
-.s-qauth { font-size:0.8rem; color:rgba(245,245,247,0.3); }
-
-.s-team { display:flex; gap:18px; flex-wrap:wrap; justify-content:center; }
-.s-tc { display:flex; flex-direction:column; align-items:center; gap:7px; animation:itemIn 0.4s both; }
-.s-tav { width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:#fff; border:2px solid rgba(255,255,255,0.08); }
-.s-tnm { font-size:0.87rem; color:#f5f5f7; font-weight:600; }
-.s-trl { font-size:0.74rem; color:rgba(245,245,247,0.35); }
-
-.s-tl { display:flex; flex-direction:column; gap:10px; max-width:440px; text-align:left; }
-.s-tlrow { display:flex; gap:14px; align-items:flex-start; animation:itemIn 0.4s both; }
-.s-tlyr { font-size:0.78rem; font-weight:600; color:#0a84ff; min-width:38px; padding-top:2px; }
-.s-tlev { flex:1; border-left:1px solid rgba(255,255,255,0.07); padding-left:12px; font-size:0.87rem; color:rgba(245,245,247,0.78); line-height:1.4; }
-
-.s-comp { display:flex; gap:12px; max-width:540px; }
-.s-cc { flex:1; border-radius:14px; padding:14px; animation:itemIn 0.4s both; }
-.s-cc.l { background:rgba(10,132,255,0.08); border:1px solid rgba(10,132,255,0.18); }
-.s-cc.r { background:rgba(50,215,75,0.06); border:1px solid rgba(50,215,75,0.18); }
-.s-clbl { font-size:0.82rem; font-weight:700; margin-bottom:8px; }
-.s-cc.l .s-clbl { color:#0a84ff; } .s-cc.r .s-clbl { color:#32d74b; }
-.s-cpt { font-size:0.77rem; color:rgba(245,245,247,0.65); margin:3px 0; }
-
-/* PRESENT MODE */
-#pm { display:none; position:fixed; inset:0; background:#000; z-index:200; flex-direction:column; }
-#pm.on { display:flex; }
-#pm-stage { flex:1; display:flex; align-items:center; justify-content:center; padding:20px; }
-#pm-canvas {
-width:min(920px,90vw); aspect-ratio:16/9;
-background:var(–slide-bg); border-radius:20px;
-box-shadow:0 40px 120px rgba(0,0,0,0.8);
-overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center;
+.slide-count {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 12px;
+color: var(–muted);
 }
-#pm-inner { width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:50px; }
-#pm-bar { height:54px; background:rgba(18,18,18,0.92); backdrop-filter:blur(20px); border-top:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between; padding:0 26px; flex-shrink:0; }
-.pm-wv .wv-bar { background:rgba(255,255,255,0.18); }
-.pm-wv.on .wv-bar { background:#32d74b; animation:wave 0.7s ease-in-out infinite alternate; }
-#pm-st { font-size:12px; color:rgba(255,255,255,0.3); }
-.pm-btns { display:flex; gap:7px; }
-.pmb { padding:6px 14px; border-radius:20px; border:none; font-size:12px; font-weight:500; cursor:pointer; font-family:inherit; transition:opacity 0.15s; }
-.pmb:active { opacity:0.7; }
-.pmb-go { background:rgba(50,215,75,0.13); color:#32d74b; border:1px solid rgba(50,215,75,0.25); }
-.pmb-stop { background:rgba(255,59,48,0.13); color:#ff3b30; border:1px solid rgba(255,59,48,0.25); }
-.pmb-back { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.55); border:1px solid rgba(255,255,255,0.1); }
-#pm-cnt { font-size:12px; color:rgba(255,255,255,0.18); }
 
-@media(max-width:620px){
-.left{width:100%;max-height:42vh;border-right:none;border-bottom:1px solid var(–border);}
-.main{flex-direction:column;}
-.right{padding:14px;}
-#sc{border-radius:14px;}
+.slide-count span {
+color: var(–accent);
+font-weight: 700;
 }
+
+/* MAIN LAYOUT */
+.main {
+display: flex;
+flex: 1;
+overflow: hidden;
+}
+
+/* LEFT: SLIDE DISPLAY */
+.slide-area {
+flex: 1;
+display: flex;
+flex-direction: column;
+padding: 24px;
+gap: 16px;
+overflow: hidden;
+position: relative;
+}
+
+.slide-stage {
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+position: relative;
+}
+
+.slide-frame {
+width: 100%;
+max-width: 780px;
+aspect-ratio: 16/9;
+background: var(–slide-bg);
+border: 1px solid var(–border);
+border-radius: 12px;
+overflow: hidden;
+position: relative;
+box-shadow: 0 0 60px rgba(0,229,255,0.06), 0 24px 80px rgba(0,0,0,0.6);
+transition: all 0.4s ease;
+}
+
+.slide-frame.generating {
+border-color: var(–accent);
+box-shadow: 0 0 80px rgba(0,229,255,0.15), 0 24px 80px rgba(0,0,0,0.6);
+}
+
+/* SLIDE CONTENT TYPES */
+.slide-inner {
+width: 100%;
+height: 100%;
+padding: 40px 52px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+position: relative;
+overflow: hidden;
+animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideIn {
+from { opacity: 0; transform: translateY(20px) scale(0.97); }
+to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.slide-inner::before {
+content: ‘’;
+position: absolute;
+top: 0; left: 0; right: 0;
+height: 3px;
+background: linear-gradient(90deg, var(–accent), var(–accent2), transparent);
+}
+
+.slide-tag {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 10px;
+letter-spacing: 3px;
+color: var(–accent);
+text-transform: uppercase;
+margin-bottom: 16px;
+opacity: 0.7;
+}
+
+.slide-title {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: clamp(28px, 4.5vw, 52px);
+letter-spacing: 2px;
+line-height: 1.05;
+color: #fff;
+margin-bottom: 20px;
+}
+
+.slide-subtitle {
+font-size: clamp(13px, 1.4vw, 17px);
+color: rgba(232,237,245,0.65);
+line-height: 1.65;
+font-weight: 300;
+max-width: 520px;
+}
+
+.slide-bullets {
+list-style: none;
+display: flex;
+flex-direction: column;
+gap: 12px;
+margin-top: 8px;
+}
+
+.slide-bullets li {
+display: flex;
+align-items: flex-start;
+gap: 12px;
+font-size: clamp(12px, 1.3vw, 15px);
+color: rgba(232,237,245,0.8);
+line-height: 1.5;
+}
+
+.slide-bullets li::before {
+content: ‘▸’;
+color: var(–accent);
+flex-shrink: 0;
+margin-top: 1px;
+}
+
+.slide-stat {
+display: flex;
+gap: 36px;
+margin-top: 12px;
+flex-wrap: wrap;
+}
+
+.stat-item {
+display: flex;
+flex-direction: column;
+gap: 4px;
+}
+
+.stat-value {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: clamp(28px, 3.5vw, 44px);
+color: var(–accent);
+letter-spacing: 2px;
+}
+
+.stat-label {
+font-size: 11px;
+color: var(–muted);
+text-transform: uppercase;
+letter-spacing: 2px;
+}
+
+/* Decorative bg shapes */
+.slide-deco {
+position: absolute;
+border-radius: 50%;
+pointer-events: none;
+}
+.deco-1 {
+width: 220px; height: 220px;
+background: radial-gradient(circle, rgba(0,229,255,0.07) 0%, transparent 70%);
+right: -40px; top: -40px;
+}
+.deco-2 {
+width: 160px; height: 160px;
+background: radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%);
+left: -20px; bottom: -20px;
+}
+
+/* EMPTY STATE */
+.empty-state {
+width: 100%; height: 100%;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 16px;
+opacity: 0.35;
+}
+
+.empty-icon {
+font-size: 48px;
+filter: grayscale(1);
+}
+
+.empty-text {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 20px;
+letter-spacing: 4px;
+color: var(–muted);
+}
+
+.empty-sub {
+font-size: 13px;
+color: var(–muted);
+}
+
+/* GENERATING OVERLAY */
+.generating-overlay {
+position: absolute;
+inset: 0;
+background: rgba(8,10,15,0.7);
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 12px;
+backdrop-filter: blur(4px);
+border-radius: 12px;
+opacity: 0;
+pointer-events: none;
+transition: opacity 0.3s;
+flex-direction: column;
+}
+
+.generating-overlay.active {
+opacity: 1;
+pointer-events: auto;
+}
+
+.gen-text {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 12px;
+letter-spacing: 3px;
+color: var(–accent);
+text-transform: uppercase;
+}
+
+.gen-dots {
+display: flex; gap: 6px;
+}
+
+.gen-dot {
+width: 6px; height: 6px;
+border-radius: 50%;
+background: var(–accent);
+animation: pulse 1.2s ease-in-out infinite;
+}
+
+.gen-dot:nth-child(2) { animation-delay: 0.2s; }
+.gen-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes pulse {
+0%, 100% { transform: scale(0.6); opacity: 0.3; }
+50% { transform: scale(1); opacity: 1; }
+}
+
+/* SLIDE THUMBNAILS */
+.thumbnails {
+display: flex;
+gap: 10px;
+overflow-x: auto;
+padding: 8px 2px;
+flex-shrink: 0;
+scrollbar-width: thin;
+scrollbar-color: var(–border) transparent;
+}
+
+.thumb {
+flex-shrink: 0;
+width: 120px;
+height: 68px;
+background: var(–panel);
+border: 1px solid var(–border);
+border-radius: 6px;
+cursor: pointer;
+overflow: hidden;
+position: relative;
+transition: all 0.2s;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 9px;
+padding: 8px;
+text-align: center;
+color: var(–muted);
+font-family: ‘DM Sans’, sans-serif;
+line-height: 1.4;
+}
+
+.thumb:hover { border-color: var(–accent); transform: translateY(-2px); }
+.thumb.active { border-color: var(–accent); box-shadow: 0 0 16px rgba(0,229,255,0.2); }
+
+.thumb::before {
+content: ‘’;
+position: absolute;
+top: 0; left: 0; right: 0;
+height: 2px;
+background: linear-gradient(90deg, var(–accent), var(–accent2));
+opacity: 0;
+transition: opacity 0.2s;
+}
+
+.thumb.active::before, .thumb:hover::before { opacity: 1; }
+
+.thumb-num {
+position: absolute;
+top: 4px; right: 6px;
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 8px;
+color: var(–accent);
+opacity: 0.6;
+}
+
+/* RIGHT PANEL */
+.right-panel {
+width: 320px;
+border-left: 1px solid var(–border);
+display: flex;
+flex-direction: column;
+background: var(–panel);
+flex-shrink: 0;
+}
+
+.panel-section {
+padding: 20px 20px 16px;
+border-bottom: 1px solid var(–border);
+}
+
+.panel-label {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 10px;
+letter-spacing: 3px;
+color: var(–muted);
+text-transform: uppercase;
+margin-bottom: 14px;
+}
+
+/* MIC BUTTON */
+.mic-area {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 16px;
+padding: 24px 20px;
+}
+
+.mic-btn {
+width: 80px; height: 80px;
+border-radius: 50%;
+background: var(–bg);
+border: 2px solid var(–border);
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+transition: all 0.3s ease;
+position: relative;
+font-size: 28px;
+}
+
+.mic-btn::before, .mic-btn::after {
+content: ‘’;
+position: absolute;
+inset: -8px;
+border-radius: 50%;
+border: 1px solid var(–accent);
+opacity: 0;
+animation: ripple 2s ease-out infinite;
+}
+
+.mic-btn::after { animation-delay: 0.7s; }
+
+@keyframes ripple {
+0% { transform: scale(0.8); opacity: 0; }
+40% { opacity: 0.4; }
+100% { transform: scale(1.5); opacity: 0; }
+}
+
+.mic-btn.listening {
+border-color: var(–accent);
+background: rgba(0,229,255,0.08);
+box-shadow: 0 0 40px rgba(0,229,255,0.2);
+}
+
+.mic-btn.listening::before, .mic-btn.listening::after {
+border-color: var(–accent);
+opacity: 1;
+}
+
+.mic-status {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+letter-spacing: 2px;
+color: var(–muted);
+text-align: center;
+text-transform: uppercase;
+}
+
+.mic-status.active { color: var(–accent); }
+.mic-status.error { color: var(–red); }
+
+/* WAVEFORM */
+.waveform {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 3px;
+height: 36px;
+}
+
+.wave-bar {
+width: 3px;
+background: var(–accent);
+border-radius: 2px;
+height: 4px;
+opacity: 0.3;
+transition: height 0.1s ease;
+}
+
+.waveform.active .wave-bar {
+opacity: 0.8;
+animation: wave 0.8s ease-in-out infinite;
+}
+
+.waveform.active .wave-bar:nth-child(1) { animation-delay: 0s; }
+.waveform.active .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.waveform.active .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+.waveform.active .wave-bar:nth-child(4) { animation-delay: 0.1s; }
+.waveform.active .wave-bar:nth-child(5) { animation-delay: 0.05s; }
+.waveform.active .wave-bar:nth-child(6) { animation-delay: 0.15s; }
+.waveform.active .wave-bar:nth-child(7) { animation-delay: 0.25s; }
+.waveform.active .wave-bar:nth-child(8) { animation-delay: 0.1s; }
+.waveform.active .wave-bar:nth-child(9) { animation-delay: 0.2s; }
+.waveform.active .wave-bar:nth-child(10) { animation-delay: 0.05s; }
+
+@keyframes wave {
+0%, 100% { height: 4px; }
+50% { height: 24px; }
+}
+
+/* TRANSCRIPT */
+.transcript-box {
+flex: 1;
+overflow-y: auto;
+display: flex;
+flex-direction: column;
+gap: 0;
+scrollbar-width: thin;
+scrollbar-color: var(–border) transparent;
+}
+
+.transcript-entry {
+padding: 12px 20px;
+border-bottom: 1px solid rgba(30,37,48,0.5);
+transition: background 0.2s;
+}
+
+.transcript-entry:hover { background: rgba(255,255,255,0.02); }
+
+.t-meta {
+display: flex;
+align-items: center;
+gap: 8px;
+margin-bottom: 5px;
+}
+
+.t-time {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 9px;
+color: var(–muted);
+}
+
+.t-badge {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 8px;
+letter-spacing: 1px;
+padding: 2px 6px;
+border-radius: 3px;
+text-transform: uppercase;
+}
+
+.t-badge.voice { background: rgba(0,229,255,0.1); color: var(–accent); }
+.t-badge.slide { background: rgba(124,58,237,0.15); color: #a78bfa; }
+
+.t-text {
+font-size: 12px;
+color: rgba(232,237,245,0.7);
+line-height: 1.5;
+}
+
+/* CONTROLS */
+.controls {
+display: flex;
+gap: 8px;
+padding: 12px 20px;
+border-top: 1px solid var(–border);
+}
+
+.ctrl-btn {
+flex: 1;
+padding: 8px 12px;
+background: transparent;
+border: 1px solid var(–border);
+color: var(–muted);
+border-radius: 6px;
+cursor: pointer;
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 10px;
+letter-spacing: 1px;
+text-transform: uppercase;
+transition: all 0.2s;
+}
+
+.ctrl-btn:hover {
+border-color: var(–accent2);
+color: #a78bfa;
+background: rgba(124,58,237,0.08);
+}
+
+.ctrl-btn.danger:hover {
+border-color: var(–red);
+color: var(–red);
+background: rgba(239,68,68,0.08);
+}
+
+/* SCANNING LINE EFFECT */
+@keyframes scan {
+0% { transform: translateY(-100%); }
+100% { transform: translateY(100vh); }
+}
+
+.scan-line {
+position: fixed;
+left: 0; right: 0;
+height: 1px;
+background: linear-gradient(90deg, transparent, rgba(0,229,255,0.15), transparent);
+pointer-events: none;
+animation: scan 4s linear infinite;
+z-index: 1000;
+}
+
+/* Noise overlay */
+body::after {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 256 256’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘noise’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23noise)’/%3E%3C/svg%3E”);
+opacity: 0.025;
+pointer-events: none;
+z-index: 999;
+}
+
+/* Tooltip */
+.tooltip {
+position: fixed;
+bottom: 20px;
+left: 50%;
+transform: translateX(-50%);
+background: rgba(0,229,255,0.1);
+border: 1px solid var(–accent);
+color: var(–accent);
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+padding: 8px 16px;
+border-radius: 6px;
+letter-spacing: 1px;
+pointer-events: none;
+opacity: 0;
+transition: opacity 0.3s;
+z-index: 500;
+white-space: nowrap;
+}
+
+.tooltip.show { opacity: 1; }
+
+/* No speech API fallback */
+.no-speech {
+display: none;
+padding: 20px;
+text-align: center;
+color: var(–red);
+font-size: 13px;
+line-height: 1.6;
+}
+
+.manual-input {
+display: flex;
+gap: 8px;
+padding: 12px 20px;
+border-bottom: 1px solid var(–border);
+}
+
+.manual-input input {
+flex: 1;
+background: var(–bg);
+border: 1px solid var(–border);
+color: var(–text);
+padding: 8px 12px;
+border-radius: 6px;
+font-family: ‘DM Sans’, sans-serif;
+font-size: 13px;
+outline: none;
+transition: border-color 0.2s;
+}
+
+.manual-input input:focus { border-color: var(–accent); }
+
+.manual-input button {
+background: var(–accent);
+color: #000;
+border: none;
+padding: 8px 14px;
+border-radius: 6px;
+cursor: pointer;
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+font-weight: 700;
+transition: opacity 0.2s;
+}
+
+.manual-input button:hover { opacity: 0.8; }
 </style>
 
 </head>
 <body>
-<div id="app">
-  <header>
-    <div class="hd-left">
-      <div class="app-ico">🎤</div>
-      <span class="app-nm">VoiceSlide</span>
-      <span class="app-badge">AI</span>
-    </div>
-    <button id="present-btn">▶&nbsp;Presenta</button>
-  </header>
 
-  <div class="main">
-    <div class="left">
-      <div class="mic-sec">
-        <button id="mic-btn"><span id="mic-ic">🎤</span></button>
-        <div class="st-row">
-          <span id="st-txt">Tocca per iniziare</span>
-          <div class="wv-wrap" id="wv">
-            <div class="wv-bar" style="animation-delay:0s;animation-duration:.72s"></div>
-            <div class="wv-bar" style="animation-delay:.08s;animation-duration:.88s"></div>
-            <div class="wv-bar" style="animation-delay:.04s;animation-duration:.64s"></div>
-            <div class="wv-bar" style="animation-delay:.12s;animation-duration:.96s"></div>
-            <div class="wv-bar" style="animation-delay:.06s;animation-duration:.76s"></div>
-            <div class="wv-bar" style="animation-delay:.14s;animation-duration:.68s"></div>
-            <div class="wv-bar" style="animation-delay:.02s;animation-duration:.84s"></div>
-            <div class="wv-bar" style="animation-delay:.10s;animation-duration:.78s"></div>
-            <div class="wv-bar" style="animation-delay:.16s;animation-duration:.60s"></div>
-            <div class="wv-bar" style="animation-delay:.05s;animation-duration:.92s"></div>
+<div class="scan-line"></div>
+
+<header>
+  <div class="logo">SLIDE<span>·LIVE</span></div>
+  <div class="status-bar">
+    <div class="slide-count">SLIDES: <span id="slideCountDisplay">0</span></div>
+    <div class="slide-count" id="sessionTime">00:00</div>
+  </div>
+</header>
+
+<div class="main">
+  <!-- LEFT: SLIDE AREA -->
+  <div class="slide-area">
+    <div class="slide-stage">
+      <div class="slide-frame" id="slideFrame">
+        <div class="slide-inner" id="slideContent">
+          <div class="empty-state">
+            <div class="empty-icon">🎤</div>
+            <div class="empty-text">PRONTO AD ASCOLTARE</div>
+            <div class="empty-sub">Premi il microfono e inizia a parlare</div>
           </div>
         </div>
-        <div id="err"></div>
-        <p id="hint">Premi il microfono e parla.<br>Le slide si generano da sole.</p>
-      </div>
-
-```
-  <div class="tr-sec" id="tr-sec">
-    <span class="sec-lbl">Trascrizione</span>
-    <div id="tr-wrap"><span id="tr-txt"></span><span id="live-sp"></span></div>
-  </div>
-
-  <div class="hist-sec" id="hist-sec">
-    <span class="sec-lbl">Slide (<span id="sc-cnt">0</span>)</span>
-    <div id="hist-list"></div>
-  </div>
-</div>
-
-<div class="right">
-  <div id="sc">
-    <div id="si">
-      <div id="emp">
-        <div class="emp-ic">✦</div>
-        <p class="emp-tx">Le slide appariranno qui<br>mentre parli</p>
+        <div class="generating-overlay" id="genOverlay">
+          <div class="gen-text">GENERANDO SLIDE</div>
+          <div class="gen-dots">
+            <div class="gen-dot"></div>
+            <div class="gen-dot"></div>
+            <div class="gen-dot"></div>
+          </div>
+        </div>
       </div>
     </div>
-    <div id="gen"><div class="sp"></div><span>Generando…</span></div>
-  </div>
-  <div class="ltags">
-    <span class="lt">tagline</span><span class="lt">bullets</span><span class="lt">metric</span>
-    <span class="lt">steps</span><span class="lt">quote</span><span class="lt">team</span>
-    <span class="lt">timeline</span><span class="lt">comparison</span>
-  </div>
-</div>
+
+```
+<!-- THUMBNAILS -->
+<div class="thumbnails" id="thumbsContainer"></div>
 ```
 
   </div>
+
+  <!-- RIGHT PANEL -->
+
+  <div class="right-panel">
+    <!-- MIC -->
+    <div class="panel-section">
+      <div class="panel-label">INPUT VOCALE</div>
+      <div class="mic-area">
+        <div class="mic-btn" id="micBtn" onclick="toggleListening()">🎤</div>
+        <div class="waveform" id="waveform">
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+        </div>
+        <div class="mic-status" id="micStatus">PREMI PER PARLARE</div>
+      </div>
+    </div>
+
+```
+<!-- MANUAL INPUT (always visible) -->
+<div class="manual-input">
+  <input type="text" id="manualText" placeholder="Oppure scrivi qui..." onkeydown="if(event.key==='Enter') sendManual()" />
+  <button onclick="sendManual()">→</button>
 </div>
 
-<div id="pm">
-  <div id="pm-stage">
-    <div id="pm-canvas"><div id="pm-inner"></div></div>
-  </div>
-  <div id="pm-bar">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div class="wv-wrap pm-wv" id="pm-wv">
-        <div class="wv-bar" style="animation-delay:0s;animation-duration:.72s"></div>
-        <div class="wv-bar" style="animation-delay:.08s;animation-duration:.88s"></div>
-        <div class="wv-bar" style="animation-delay:.04s;animation-duration:.64s"></div>
-        <div class="wv-bar" style="animation-delay:.12s;animation-duration:.96s"></div>
-        <div class="wv-bar" style="animation-delay:.06s;animation-duration:.76s"></div>
-        <div class="wv-bar" style="animation-delay:.14s;animation-duration:.68s"></div>
-        <div class="wv-bar" style="animation-delay:.02s;animation-duration:.84s"></div>
-      </div>
-      <span id="pm-st">Pronto</span>
-    </div>
-    <div class="pm-btns">
-      <button class="pmb pmb-go" id="pm-mic">🎤&nbsp;Parla</button>
-      <button class="pmb pmb-back" id="pm-back">← Esci</button>
-    </div>
-    <span id="pm-cnt">0 slide</span>
+<!-- TRANSCRIPT -->
+<div class="panel-label" style="padding: 14px 20px 0; font-family: 'JetBrains Mono'; font-size:10px; letter-spacing:3px; color: var(--muted); text-transform:uppercase;">LOG</div>
+<div class="transcript-box" id="transcriptBox"></div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <button class="ctrl-btn" onclick="exportSlides()">ESPORTA</button>
+  <button class="ctrl-btn danger" onclick="clearAll()">RESET</button>
+</div>
+```
+
   </div>
 </div>
+
+<div class="tooltip" id="tooltip"></div>
 
 <script>
-const KEY = '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';
+// ─── STATE ──────────────────────────────────────────────
+let slides = [];
+let currentSlideIndex = -1;
+let isListening = false;
+let isGenerating = false;
+let recognition = null;
+let sessionStart = Date.now();
+let sessionTimer = null;
+let accumulatedText = '';
+let silenceTimer = null;
+const SILENCE_DELAY = 2200; // ms of silence before generating
 
-const SYS = `You are a real-time presentation AI. Based on what the speaker says, generate ONE slide as a raw JSON object.
-NO markdown, NO backticks, NO explanation — only valid JSON.
-
-{
-  "layout": "tagline"|"bullets"|"metric"|"steps"|"quote"|"team"|"timeline"|"comparison",
-  "title": "...",
-  "subtitle": "..." or null,
-  "content": ...
+// ─── INIT ────────────────────────────────────────────────
+function init() {
+  startSessionTimer();
+  initSpeechRecognition();
 }
 
-Content rules:
-- tagline: null
-- bullets: ["item","item"] (2-5)
-- metric: {"value":"50M","label":"users","change":"+10%"}
-- steps: ["step1","step2"] (2-4)
-- quote: {"text":"...","author":"Name"}
-- team: [{"name":"Alice","role":"CEO"},...] (2-4)
-- timeline: [{"year":"2020","event":"Founded"},...] (3-5)
-- comparison: {"left":{"label":"A","points":["x","y"]},"right":{"label":"B","points":["x","y"]}}
+function startSessionTimer() {
+  sessionTimer = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - sessionStart) / 1000);
+    const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const s = String(elapsed % 60).padStart(2, '0');
+    document.getElementById('sessionTime').textContent = `${m}:${s}`;
+  }, 1000);
+}
 
-Mapping: numbers→metric, list→bullets, process→steps, people→team, history→timeline, compare→comparison, inspiring→quote, open/close→tagline.`;
+// ─── SPEECH RECOGNITION ──────────────────────────────────
+function initSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    document.getElementById('micStatus').textContent = 'USA IL CAMPO TESTO';
+    document.getElementById('micStatus').className = 'mic-status error';
+    document.getElementById('micBtn').style.opacity = '0.4';
+    document.getElementById('micBtn').style.cursor = 'default';
+    document.getElementById('micBtn').onclick = null;
+    return;
+  }
 
-let listening=false, slides=[], curIdx=-1, fullTr='', buf='', lastGen='', timer=null, rec=null;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'it-IT';
+  recognition.continuous = true;
+  recognition.interimResults = true;
 
-const $=id=>document.getElementById(id);
-const micBtn=$('mic-btn'), micIc=$('mic-ic'), stTxt=$('st-txt');
-const wv=$('wv'), pmWv=$('pm-wv');
-const errEl=$('err'), hintEl=$('hint');
-const trSec=$('tr-sec'), trTxt=$('tr-txt'), liveSp=$('live-sp');
-const histSec=$('hist-sec'), histList=$('hist-list'), scCnt=$('sc-cnt');
-const si=$('si'), genBadge=$('gen'), presentBtn=$('present-btn');
-const pm=$('pm'), pmInner=$('pm-inner'), pmMic=$('pm-mic'), pmBack=$('pm-back');
-const pmSt=$('pm-st'), pmCnt=$('pm-cnt');
-
-const AVCOLORS=['#0071e3','#34c759','#ff9500','#ff2d55','#af52de','#5856d6'];
-
-function initSpeech(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ errEl.textContent='⚠️ Usa Chrome su desktop per il riconoscimento vocale.'; errEl.style.display='block'; micBtn.disabled=true; return; }
-  rec=new SR(); rec.continuous=true; rec.interimResults=true; rec.lang='it-IT';
-  rec.onresult=ev=>{
-    let fin='',int='';
-    for(let i=ev.resultIndex;i<ev.results.length;i++){
-      const t=ev.results[i][0].transcript;
-      ev.results[i].isFinal?(fin+=t):(int+=t);
+  recognition.onresult = (e) => {
+    let interim = '';
+    let final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += t;
+      else interim += t;
     }
-    if(fin){ buf+=' '+fin; fullTr+=' '+fin; trTxt.textContent=fullTr.trim(); trSec.style.display='flex'; }
-    liveSp.textContent=int?' '+int:'';
-    clearTimeout(timer);
-    if(buf.trim().split(/\s+/).filter(Boolean).length>=5){
-      timer=setTimeout(()=>{ const c=buf.trim(); if(c&&c!==lastGen){genSlide(c);lastGen=c;buf='';} },2300);
+
+    if (final) {
+      accumulatedText += ' ' + final.trim();
+      addTranscriptEntry(final.trim(), 'voice');
+
+      clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => {
+        if (accumulatedText.trim().length > 10) {
+          const textToProcess = accumulatedText.trim();
+          accumulatedText = '';
+          generateSlide(textToProcess);
+        }
+      }, SILENCE_DELAY);
     }
   };
-  rec.onerror=ev=>{ if(ev.error!=='no-speech') setSt('Errore: '+ev.error,'#ff3b30'); };
-  rec.onend=()=>{ if(listening) rec.start(); };
+
+  recognition.onerror = (e) => {
+    if (e.error === 'not-allowed') {
+      showTooltip('Microfono non autorizzato. Usa il campo testo.');
+      setMicOff();
+    }
+  };
+
+  recognition.onend = () => {
+    if (isListening) {
+      // Restart
+      try { recognition.start(); } catch(err) {}
+    }
+  };
 }
 
-function setSt(t,c='#6e6e73'){ stTxt.textContent=t; stTxt.style.color=c; pmSt.textContent=t; pmSt.style.color=c==='#6e6e73'?'rgba(255,255,255,0.3)':c; }
-function setWave(on){ wv.className=on?'wv-wrap on':'wv-wrap'; pmWv.className=on?'wv-wrap pm-wv on':'wv-wrap pm-wv'; }
+function toggleListening() {
+  if (!recognition) return;
+  isListening ? stopListening() : startListening();
+}
 
-function toggleMic(){
-  if(!rec) return;
-  if(listening){
-    rec.stop(); listening=false;
-    micBtn.className=''; micIc.textContent='🎤';
-    pmMic.className='pmb pmb-go'; pmMic.textContent='🎤\u00a0Parla';
-    setWave(false); setSt('Tocca per iniziare'); liveSp.textContent=''; hintEl.style.display='block';
-  } else {
-    fullTr='';buf='';lastGen='';slides=[];curIdx=-1;
-    trTxt.textContent=''; histList.innerHTML=''; histSec.style.display='none';
-    scCnt.textContent='0'; pmCnt.textContent='0 slide'; presentBtn.style.display='none';
-    showEmp(); errEl.style.display='none';
-    rec.start(); listening=true;
-    micBtn.className='listening'; micIc.textContent='⏹';
-    pmMic.className='pmb pmb-stop'; pmMic.textContent='⏹\u00a0Stop';
-    setWave(true); setSt('In ascolto…','#34c759'); hintEl.style.display='none';
+function startListening() {
+  isListening = true;
+  recognition.start();
+  document.getElementById('micBtn').classList.add('listening');
+  document.getElementById('micBtn').textContent = '⏹';
+  document.getElementById('waveform').classList.add('active');
+  document.getElementById('micStatus').textContent = 'IN ASCOLTO...';
+  document.getElementById('micStatus').className = 'mic-status active';
+}
+
+function stopListening() {
+  isListening = false;
+  try { recognition.stop(); } catch(e) {}
+  setMicOff();
+  clearTimeout(silenceTimer);
+  if (accumulatedText.trim().length > 10) {
+    const t = accumulatedText.trim();
+    accumulatedText = '';
+    generateSlide(t);
   }
 }
-micBtn.addEventListener('click',toggleMic);
-pmMic.addEventListener('click',toggleMic);
 
-async function genSlide(text){
-  genBadge.style.display='flex'; setSt('Generando…','#0071e3');
-  try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:800,system:SYS,messages:[{role:'user',content:`Speaker: "${text}"`}]})
+function setMicOff() {
+  document.getElementById('micBtn').classList.remove('listening');
+  document.getElementById('micBtn').textContent = '🎤';
+  document.getElementById('waveform').classList.remove('active');
+  document.getElementById('micStatus').textContent = 'PREMI PER PARLARE';
+  document.getElementById('micStatus').className = 'mic-status';
+}
+
+// ─── MANUAL INPUT ─────────────────────────────────────────
+function sendManual() {
+  const input = document.getElementById('manualText');
+  const text = input.value.trim();
+  if (!text || isGenerating) return;
+  input.value = '';
+  addTranscriptEntry(text, 'voice');
+  generateSlide(text);
+}
+
+// ─── GENERATE SLIDE VIA GROQ API ─────────────────────────
+const GROQ_API_KEY = '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';
+const GROQ_MODEL   = 'llama-3.3-70b-versatile';
+
+async function generateSlide(text) {
+  if (isGenerating) return;
+  isGenerating = true;
+
+  document.getElementById('slideFrame').classList.add('generating');
+  document.getElementById('genOverlay').classList.add('active');
+
+  const systemPrompt = `Sei un generatore di slide visive. L'utente parla e tu crei una slide professionale basata su ciò che dice.
+
+Rispondi SOLO con un oggetto JSON valido (nessun testo prima o dopo, nessun markdown), con questa struttura:
+{
+  "type": "title|bullets|stats|quote",
+  "tag": "una parola chiave tematica in maiuscolo (es: AI, MARKETING, SCIENZA)",
+  "title": "Titolo della slide (massimo 7 parole, impattante)",
+  "subtitle": "Sottotitolo o descrizione (solo per type: title, massimo 20 parole)",
+  "bullets": ["punto 1", "punto 2", "punto 3"],
+  "stats": [{"value": "95%", "label": "CRESCITA"}],
+  "quote": "citazione o frase chiave"
+}
+
+Scegli il tipo più adatto al contenuto:
+- title: per introduzioni o argomenti generali
+- bullets: per elenchi, processi, caratteristiche
+- stats: per numeri, dati, performance
+- quote: per citazioni, principi, filosofie
+
+Parla sempre in italiano. Slide brevi, impattanti, visive.`;
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        max_tokens: 1000,
+        temperature: 0.7,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Crea una slide per questo contenuto: "${text}"` }
+        ]
+      })
     });
-    const d=await r.json();
-    if(d.error) throw new Error(d.error.type+': '+d.error.message);
-    const raw=(d.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
-    const slide=JSON.parse(raw);
-    slide.id=Date.now();
-    slides.push(slide); curIdx=slides.length-1;
-    renderSlide(slide,si); renderSlide(slide,pmInner);
-    addHist(slide,curIdx);
-    presentBtn.style.display='block';
-    scCnt.textContent=slides.length; pmCnt.textContent=slides.length+' slide';
-    setSt('In ascolto…','#34c759');
-    errEl.style.display='none';
-  } catch(err){
-    console.error(err);
-    errEl.textContent='⚠️ '+err.message;
-    errEl.style.display='block';
-    setSt('Errore','#ff3b30');
-    setTimeout(()=>{ setSt('In ascolto…','#34c759'); },3000);
+
+    const data = await response.json();
+    const raw = data.choices?.[0]?.message?.content || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    let slideData;
+    try { slideData = JSON.parse(clean); }
+    catch(e) {
+      slideData = {
+        type: 'title',
+        tag: 'LIVE',
+        title: text.split(' ').slice(0, 6).join(' '),
+        subtitle: text
+      };
+    }
+
+    addSlide(slideData, text);
+    addTranscriptEntry(`Slide: "${slideData.title}"`, 'slide');
+
+  } catch (err) {
+    showTooltip('Errore API Groq. Riprova.');
+    addSlide({
+      type: 'title',
+      tag: 'LIVE',
+      title: text.split(' ').slice(0, 5).join(' ') || 'NUOVA SLIDE',
+      subtitle: text
+    }, text);
   }
-  finally { genBadge.style.display='none'; }
+
+  isGenerating = false;
+  document.getElementById('slideFrame').classList.remove('generating');
+  document.getElementById('genOverlay').classList.remove('active');
 }
 
-function renderSlide(slide,container){
-  const {layout,title,subtitle,content}=slide;
-  const big=layout==='tagline';
-  let h=`<div class="sc-wrap">`;
-  h+=`<h1 class="s-title ${big?'lg':'md'}">${e(title)}</h1>`;
-  if(subtitle) h+=`<p class="s-sub">${e(subtitle)}</p>`;
+// ─── RENDER SLIDE ─────────────────────────────────────────
+function renderSlideHTML(s) {
+  const deco = `<div class="slide-deco deco-1"></div><div class="slide-deco deco-2"></div>`;
 
-  if(layout==='bullets'&&Array.isArray(content)){
-    h+=`<ul class="s-bullets">`;
-    content.forEach((b,i)=>h+=`<li style="animation-delay:${i*.07}s"><span class="bdot"></span>${e(b)}</li>`);
-    h+=`</ul>`;
+  if (s.type === 'title') {
+    return `${deco}
+      <div class="slide-tag">${s.tag || 'LIVE'}</div>
+      <div class="slide-title">${s.title}</div>
+      ${s.subtitle ? `<div class="slide-subtitle">${s.subtitle}</div>` : ''}`;
   }
-  if(layout==='metric'&&content){
-    h+=`<div class="s-metric"><span class="s-mval">${e(content.value||'')}</span><span class="s-mlbl">${e(content.label||'')}</span>${content.change?`<span class="s-mchg">${e(content.change)}</span>`:''}</div>`;
+
+  if (s.type === 'bullets') {
+    const items = (s.bullets || []).map(b => `<li>${b}</li>`).join('');
+    return `${deco}
+      <div class="slide-tag">${s.tag || 'LIVE'}</div>
+      <div class="slide-title">${s.title}</div>
+      <ul class="slide-bullets">${items}</ul>`;
   }
-  if(layout==='steps'&&Array.isArray(content)){
-    h+=`<div class="s-steps">`;
-    content.forEach((s,i)=>h+=`<div class="s-step" style="animation-delay:${i*.09}s"><div class="s-snum">${i+1}</div><span class="s-stxt">${e(s)}</span></div>`);
-    h+=`</div>`;
+
+  if (s.type === 'stats') {
+    const items = (s.stats || []).map(st =>
+      `<div class="stat-item"><div class="stat-value">${st.value}</div><div class="stat-label">${st.label}</div></div>`
+    ).join('');
+    return `${deco}
+      <div class="slide-tag">${s.tag || 'DATI'}</div>
+      <div class="slide-title">${s.title}</div>
+      <div class="slide-stat">${items}</div>`;
   }
-  if(layout==='quote'&&content){
-    h+=`<div class="s-quote"><p class="s-qbody"><span class="s-qmark">"</span>${e(content.text||'')}</p>${content.author?`<p class="s-qauth">— ${e(content.author)}</p>`:''}</div>`;
+
+  if (s.type === 'quote') {
+    return `${deco}
+      <div class="slide-tag">${s.tag || 'CITAZIONE'}</div>
+      <div class="slide-title" style="font-size:clamp(18px,2.8vw,34px); color: var(--accent); font-family: 'DM Sans'; font-weight:300; line-height:1.4; letter-spacing:0">"${s.quote || s.title}"</div>
+      ${s.title && s.quote ? `<div class="slide-subtitle" style="margin-top:16px">— ${s.title}</div>` : ''}`;
   }
-  if(layout==='team'&&Array.isArray(content)){
-    h+=`<div class="s-team">`;
-    content.forEach((p,i)=>h+=`<div class="s-tc" style="animation-delay:${i*.09}s"><div class="s-tav" style="background:${AVCOLORS[i%AVCOLORS.length]}">${e((p.name||'?')[0])}</div><span class="s-tnm">${e(p.name||'')}</span><span class="s-trl">${e(p.role||'')}</span></div>`);
-    h+=`</div>`;
-  }
-  if(layout==='timeline'&&Array.isArray(content)){
-    h+=`<div class="s-tl">`;
-    content.forEach((ev,i)=>h+=`<div class="s-tlrow" style="animation-delay:${i*.07}s"><span class="s-tlyr">${e(ev.year||'')}</span><span class="s-tlev">${e(ev.event||'')}</span></div>`);
-    h+=`</div>`;
-  }
-  if(layout==='comparison'&&content){
-    h+=`<div class="s-comp">`;
-    ['left','right'].forEach((side,i)=>{
-      const d=content[side]||{};
-      h+=`<div class="s-cc ${side==='left'?'l':'r'}" style="animation-delay:${i*.1}s"><div class="s-clbl">${e(d.label||'')}</div>${(d.points||[]).map(p=>`<p class="s-cpt">• ${e(p)}</p>`).join('')}</div>`;
-    });
-    h+=`</div>`;
-  }
-  h+=`</div>`;
-  container.innerHTML=h;
+
+  return `${deco}<div class="slide-title">${s.title}</div>`;
 }
 
-function showEmp(){ si.innerHTML=`<div id="emp"><div class="emp-ic">✦</div><p class="emp-tx">Le slide appariranno qui<br>mentre parli</p></div>`; }
+function addSlide(slideData, rawText) {
+  slides.push({ data: slideData, text: rawText });
+  currentSlideIndex = slides.length - 1;
 
-function addHist(slide,idx){
-  histSec.style.display='flex';
-  document.querySelectorAll('.hi').forEach(b=>b.classList.remove('on'));
-  const btn=document.createElement('button');
-  btn.className='hi on'; btn.dataset.i=idx;
-  const t=(slide.title||'').slice(0,25);
-  btn.innerHTML=`<span class="hi-t">${e(t)}${(slide.title||'').length>25?'…':''}</span><span class="hi-l">${e(slide.layout)}</span>`;
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.hi').forEach(b=>b.classList.remove('on'));
-    btn.classList.add('on');
-    const s=slides[+btn.dataset.i];
-    renderSlide(s,si); renderSlide(s,pmInner);
+  document.getElementById('slideCountDisplay').textContent = slides.length;
+
+  // Render main slide
+  const content = document.getElementById('slideContent');
+  content.innerHTML = renderSlideHTML(slideData);
+
+  // Add thumbnail
+  addThumbnail(slideData, currentSlideIndex);
+}
+
+function addThumbnail(slideData, index) {
+  const container = document.getElementById('thumbsContainer');
+  const thumb = document.createElement('div');
+  thumb.className = 'thumb active';
+  thumb.id = `thumb-${index}`;
+  thumb.innerHTML = `<span class="thumb-num">${index + 1}</span><span>${slideData.title.substring(0, 40)}</span>`;
+  thumb.onclick = () => selectSlide(index);
+
+  // Deactivate previous
+  container.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+  container.appendChild(thumb);
+  thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
+}
+
+function selectSlide(index) {
+  if (index < 0 || index >= slides.length) return;
+  currentSlideIndex = index;
+  const content = document.getElementById('slideContent');
+  content.innerHTML = renderSlideHTML(slides[index].data);
+
+  document.querySelectorAll('.thumb').forEach((t, i) => {
+    t.classList.toggle('active', i === index);
   });
-  histList.appendChild(btn);
-  histList.scrollTop=histList.scrollHeight;
 }
 
-function e(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// ─── TRANSCRIPT ───────────────────────────────────────────
+function addTranscriptEntry(text, type) {
+  const box = document.getElementById('transcriptBox');
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
 
-presentBtn.addEventListener('click',()=>{ pm.classList.add('on'); if(curIdx>=0) renderSlide(slides[curIdx],pmInner); });
-pmBack.addEventListener('click',()=>pm.classList.remove('on'));
-document.addEventListener('keydown',ev=>{ if(ev.key==='Escape') pm.classList.remove('on'); });
+  const entry = document.createElement('div');
+  entry.className = 'transcript-entry';
+  entry.innerHTML = `
+    <div class="t-meta">
+      <span class="t-time">${time}</span>
+      <span class="t-badge ${type}">${type === 'voice' ? 'VOCE' : 'SLIDE'}</span>
+    </div>
+    <div class="t-text">${text}</div>
+  `;
+  box.appendChild(entry);
+  box.scrollTop = box.scrollHeight;
+}
 
-initSpeech();
+// ─── TOOLTIP ──────────────────────────────────────────────
+function showTooltip(msg) {
+  const t = document.getElementById('tooltip');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── EXPORT ───────────────────────────────────────────────
+function exportSlides() {
+  if (slides.length === 0) { showTooltip('Nessuna slide da esportare'); return; }
+  const data = slides.map((s, i) => `SLIDE ${i+1}: ${s.data.title}\n${s.text}`).join('\n\n---\n\n');
+  const blob = new Blob([data], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `slide-live-${Date.now()}.txt`;
+  a.click();
+  showTooltip('Esportazione completata!');
+}
+
+function clearAll() {
+  slides = [];
+  currentSlideIndex = -1;
+  accumulatedText = '';
+  document.getElementById('slideCountDisplay').textContent = '0';
+  document.getElementById('slideContent').innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">🎤</div>
+      <div class="empty-text">PRONTO AD ASCOLTARE</div>
+      <div class="empty-sub">Premi il microfono e inizia a parlare</div>
+    </div>`;
+  document.getElementById('thumbsContainer').innerHTML = '';
+  document.getElementById('transcriptBox').innerHTML = '';
+  if (isListening) stopListening();
+  showTooltip('Reset completato');
+}
+
+// ─── START ────────────────────────────────────────────────
+init();
 </script>
 
 </body>
