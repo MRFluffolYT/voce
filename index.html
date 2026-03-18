@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f0ece6;
+  --bg:#eeeae4;
   --font:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
   --accent:#0071e3;
   --red:#ff3b30;
@@ -17,97 +17,186 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);}
-body{background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px 22px 108px;}
+body{
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:22px 22px 108px;
+}
 
 /* ── SLIDE ───────────────────────────────── */
 #slideWrap{
 width:100%;max-width:1080px;aspect-ratio:16/9;
 border-radius:22px;overflow:hidden;
-box-shadow:0 14px 64px rgba(0,0,0,.18),0 2px 8px rgba(0,0,0,.08);
+box-shadow:0 14px 64px rgba(0,0,0,.16),0 2px 8px rgba(0,0,0,.07);
 background:#fff;position:relative;flex-shrink:0;
-border:2px solid transparent;transition:border-color .2s,box-shadow .2s;
+border:2px solid transparent;
+transition:border-color .25s,box-shadow .25s;
 }
-#slideWrap.live{border-color:rgba(0,113,227,.4);box-shadow:0 0 0 4px rgba(0,113,227,.09),0 14px 64px rgba(0,0,0,.18);}
-#slideWrap.ai{border-color:rgba(255,159,10,.5);box-shadow:0 0 0 4px rgba(255,159,10,.09),0 14px 64px rgba(0,0,0,.18);}
-
-#slide{width:100%;height:100%;transition:opacity .18s ease,transform .22s cubic-bezier(.16,1,.3,1);}
-#slide.out{opacity:0;transform:scale(.975);}
-
-/* ── INSTANT NUMBER OVERLAY ───────────────── */
-#overlay{
-position:absolute;inset:0;display:none;
-align-items:center;justify-content:center;
-z-index:20;pointer-events:none;
-animation:ovIn .18s cubic-bezier(.16,1,.3,1);
+#slideWrap.thinking{
+border-color:rgba(0,113,227,.35);
+box-shadow:0 0 0 4px rgba(0,113,227,.08),0 14px 64px rgba(0,0,0,.16);
 }
-#overlay.show{display:flex;}
-@keyframes ovIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
-#overlayInner{
-background:rgba(0,0,0,.72);
-backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-border-radius:28px;padding:32px 52px;text-align:center;
-border:1px solid rgba(255,255,255,.12);
+
+/* slide content — fades between slides */
+#slide{
+width:100%;height:100%;
+opacity:1;
+transition:opacity .22s ease, transform .28s cubic-bezier(.16,1,.3,1);
 }
-#overlayNum{font-size:clamp(52px,10vw,120px);font-weight:900;color:#fff;letter-spacing:-4px;line-height:1;}
-#overlayLabel{font-size:clamp(14px,2vw,20px);color:rgba(255,255,255,.6);font-weight:500;margin-top:8px;letter-spacing:-.3px;}
+#slide.out{opacity:0;transform:scale(.97);}
 
-/* blinking cursor */
-.cur{display:inline-block;width:3px;height:.88em;background:currentColor;margin-left:4px;border-radius:2px;vertical-align:text-bottom;animation:cur .72s steps(1) infinite;}
-@keyframes cur{0%,49%{opacity:1}50%,100%{opacity:0}}
+/* ── THINKING INDICATOR ──────────────────── */
+#thinkBar{
+position:absolute;bottom:0;left:0;right:0;height:3px;
+background:transparent;overflow:hidden;display:none;z-index:10;
+}
+#thinkBar.show{display:block;}
+#thinkBar::after{
+content:’’;display:block;height:100%;width:40%;
+background:linear-gradient(90deg,transparent,var(–accent),transparent);
+animation:sweep 1s ease-in-out infinite;
+}
+@keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(350%)}}
 
-/* word fade */
-.wnew{animation:wfade .15s ease both;}
-@keyframes wfade{from{opacity:0;filter:blur(6px)}to{opacity:1;filter:none}}
+/* ── TRANSCRIPT BAR (shows what mic hears) ─ */
+#transcriptBar{
+position:absolute;bottom:0;left:0;right:0;
+padding:10px 20px;
+background:linear-gradient(0deg,rgba(0,0,0,.55) 0%,transparent 100%);
+font-size:clamp(12px,1.6vw,17px);
+color:rgba(255,255,255,.9);
+font-weight:500;
+letter-spacing:-.2px;
+line-height:1.4;
+min-height:48px;
+display:flex;align-items:flex-end;
+opacity:0;
+transition:opacity .3s;
+z-index:5;
+pointer-events:none;
+}
+#transcriptBar.show{opacity:1;}
+#transcriptText{
+flex:1;
+/* show last portion of text, latest words visible */
+overflow:hidden;
+display:-webkit-box;
+-webkit-line-clamp:2;
+-webkit-box-orient:vertical;
+}
+/* interim (unconfirmed) text is dimmer */
+#interimSpan{opacity:.55;font-style:italic;}
 
-/* ── BADGES ──────────────────────────────── */
-#badge{position:absolute;top:14px;left:14px;display:none;align-items:center;gap:7px;background:rgba(255,255,255,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(0,0,0,.08);border-radius:30px;padding:5px 13px;font-size:12px;font-weight:600;color:#1d1d1f;box-shadow:0 2px 10px rgba(0,0,0,.09);z-index:10;pointer-events:none;}
+/* ── BADGES top-left ─────────────────────── */
+#badge{
+position:absolute;top:14px;left:14px;
+display:none;align-items:center;gap:7px;
+background:rgba(255,255,255,.82);
+backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+border:1px solid rgba(0,0,0,.08);border-radius:30px;
+padding:5px 13px;font-size:12px;font-weight:600;color:#1d1d1f;
+box-shadow:0 2px 10px rgba(0,0,0,.09);z-index:10;pointer-events:none;
+}
 #badge.show{display:flex;}
 #bdot{width:7px;height:7px;border-radius:50%;background:var(–green);animation:bl 1.1s infinite;}
-#badge.ai #bdot{background:var(–orange);}
+#badge.thinking #bdot{background:var(–orange);}
 @keyframes bl{0%,100%{opacity:1}50%{opacity:.15}}
 
-/* top-right buttons */
+/* ── TOP RIGHT ───────────────────────────── */
 #topRight{position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:10;}
-.topBtn{height:36px;border-radius:30px;background:rgba(255,255,255,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,.09);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:600;color:#1d1d1f;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:all .18s;padding:0 13px;gap:6px;white-space:nowrap;}
+.topBtn{
+height:36px;border-radius:30px;
+background:rgba(255,255,255,.78);
+backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+border:1px solid rgba(0,0,0,.09);
+display:flex;align-items:center;justify-content:center;
+cursor:pointer;font-size:13px;font-weight:600;color:#1d1d1f;
+box-shadow:0 2px 8px rgba(0,0,0,.1);
+transition:all .18s;padding:0 13px;gap:6px;white-space:nowrap;
+}
 .topBtn:hover{background:rgba(255,255,255,.96);transform:scale(1.05);}
 .topBtn:active{transform:scale(.92);}
 
 /* lang dropdown */
-#langMenu{position:absolute;top:58px;right:14px;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(0,0,0,.1);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.14);overflow:hidden;z-index:30;display:none;min-width:170px;}
+#langMenu{
+position:absolute;top:58px;right:14px;
+background:rgba(255,255,255,.96);
+backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+border:1px solid rgba(0,0,0,.1);border-radius:14px;
+box-shadow:0 8px 32px rgba(0,0,0,.14);
+overflow:hidden;z-index:30;display:none;min-width:170px;
+}
 #langMenu.show{display:block;}
 .langOpt{padding:10px 16px;font-size:13px;font-weight:500;color:#1d1d1f;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;}
 .langOpt:hover{background:rgba(0,113,227,.07);}
 .langOpt.active{color:var(–accent);font-weight:700;}
 
 /* ── EMPTY ───────────────────────────────── */
-#empty{width:100%;height:100%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
-.ei{font-size:48px;opacity:.2;}
-.et{font-size:20px;font-weight:700;color:#1d1d1f;letter-spacing:-.5px;}
-.es{font-size:14px;color:#6e6e73;text-align:center;max-width:280px;line-height:1.5;}
+#empty{
+width:100%;height:100%;background:#fff;
+display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+}
+.ei{font-size:52px;opacity:.18;}
+.et{font-size:22px;font-weight:700;color:#1d1d1f;letter-spacing:-.6px;}
+.es{font-size:15px;color:#6e6e73;text-align:center;max-width:300px;line-height:1.5;}
 
-/* ── CONTROLS ────────────────────────────── */
-#controls{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;z-index:100;}
+/* ── FLOATING CONTROLS ───────────────────── */
+#controls{
+position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+display:flex;align-items:center;gap:12px;z-index:100;
+}
+
+/* waveform */
 #wave{display:flex;gap:2.5px;align-items:center;height:22px;opacity:0;transition:opacity .3s;}
 #wave.on{opacity:1;}
 .wb{width:2.5px;border-radius:2px;background:rgba(0,0,0,.22);height:4px;transition:height .09s;}
-#mic{width:66px;height:66px;border-radius:50%;border:none;background:var(–red);color:#fff;font-size:27px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(255,59,48,.38),0 2px 6px rgba(0,0,0,.14);transition:all .22s cubic-bezier(.34,1.56,.64,1);position:relative;flex-shrink:0;}
+
+/* mic */
+#mic{
+width:68px;height:68px;border-radius:50%;border:none;
+background:var(–red);color:#fff;font-size:27px;cursor:pointer;
+display:flex;align-items:center;justify-content:center;
+box-shadow:0 4px 20px rgba(255,59,48,.4),0 2px 6px rgba(0,0,0,.14);
+transition:all .22s cubic-bezier(.34,1.56,.64,1);
+position:relative;flex-shrink:0;
+}
 #mic:hover{transform:scale(1.07);}
-#mic:active{transform:scale(.91);}
-#mic.on{background:var(–accent);box-shadow:0 4px 22px rgba(0,113,227,.42),0 2px 6px rgba(0,0,0,.14);}
+#mic:active{transform:scale(.9);}
+#mic.on{
+background:var(–accent);
+box-shadow:0 4px 22px rgba(0,113,227,.44),0 2px 6px rgba(0,0,0,.14);
+}
 #mic.on::before{content:’’;position:absolute;inset:-9px;border-radius:50%;border:2px solid rgba(0,113,227,.22);animation:rip 1.9s ease-out infinite;}
-#mic.on::after{content:’’;position:absolute;inset:-19px;border-radius:50%;border:1.5px solid rgba(0,113,227,.1);animation:rip 1.9s ease-out .65s infinite;}
+#mic.on::after{content:’’;position:absolute;inset:-20px;border-radius:50%;border:1.5px solid rgba(0,113,227,.1);animation:rip 1.9s ease-out .65s infinite;}
 @keyframes rip{0%{opacity:1;transform:scale(.8)}100%{opacity:0;transform:scale(1.2)}}
-#inputPill{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(0,0,0,.1);border-radius:30px;padding:9px 9px 9px 16px;box-shadow:0 4px 20px rgba(0,0,0,.12);min-width:200px;}
+
+/* input pill */
+#inputPill{
+display:flex;align-items:center;gap:9px;
+background:rgba(255,255,255,.88);
+backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+border:1px solid rgba(0,0,0,.1);border-radius:30px;
+padding:9px 9px 9px 16px;
+box-shadow:0 4px 20px rgba(0,0,0,.12);
+min-width:200px;
+}
 #manIn{flex:1;border:none;outline:none;background:transparent;font-family:var(–font);font-size:14px;font-weight:500;color:#1d1d1f;min-width:0;}
 #manIn::placeholder{color:#aeaeb2;}
 #sendBtn{width:34px;height:34px;border-radius:50%;background:var(–accent);color:#fff;border:none;font-size:16px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .18s;}
 #sendBtn:hover{background:#0077ed;transform:scale(1.08);}
 #sendBtn:active{transform:scale(.88);}
 
-/* ── FULLSCREEN ──────────────────────────── */
+/* fullscreen */
 body.fs{padding:0;background:#000;}
 body.fs #slideWrap{max-width:100%;width:100vw;height:100dvh;aspect-ratio:unset;border-radius:0;border:none;}
-@media(max-width:560px){body{padding:10px 10px 94px;}#mic{width:58px;height:58px;font-size:23px;}#inputPill{min-width:140px;padding:8px 8px 8px 13px;}#manIn{font-size:13px;}}
+
+@media(max-width:560px){
+body{padding:10px 10px 94px;}
+#mic{width:58px;height:58px;font-size:23px;}
+#inputPill{min-width:140px;padding:8px 8px 8px 13px;}
+#manIn{font-size:13px;}
+}
 </style>
 
 </head>
@@ -117,21 +206,28 @@ body.fs #slideWrap{max-width:100%;width:100vw;height:100dvh;aspect-ratio:unset;b
   <div id="slide">
     <div id="empty">
       <div class="ei">🎤</div>
-      <div class="et">Parla e la slide appare</div>
-      <div class="es">Dici un numero? Appare gigante. Dici un argomento? La slide si costruisce.</div>
+      <div class="et">Premi e parla</div>
+      <div class="es">Parla liberamente — una slide sensata appare ogni volta che finisci un concetto</div>
     </div>
   </div>
 
-  <!-- number/word overlay -->
+  <!-- transcript bar at bottom of slide -->
 
-  <div id="overlay">
-    <div id="overlayInner">
-      <div id="overlayNum"></div>
-      <div id="overlayLabel"></div>
+  <div id="transcriptBar">
+    <div id="transcriptText">
+      <span id="confirmedSpan"></span><span id="interimSpan"></span>
     </div>
   </div>
+
+  <!-- thinking progress bar -->
+
+  <div id="thinkBar"></div>
+
+  <!-- status badge -->
 
   <div id="badge"><div id="bdot"></div><span id="blabel">In ascolto</span></div>
+
+  <!-- top right: lang + fs -->
 
   <div id="topRight">
     <div class="topBtn" id="langBtn" onclick="toggleLangMenu()">
@@ -158,46 +254,27 @@ body.fs #slideWrap{max-width:100%;width:100vw;height:100dvh;aspect-ratio:unset;b
   </div>
   <button id="mic" onclick="toggleMic()">🎤</button>
   <div id="inputPill">
-    <input id="manIn" type="text" placeholder="Scrivi testo…" onkeydown="if(event.key==='Enter')sendManual()"/>
+    <input id="manIn" type="text" placeholder="Scrivi un concetto…"
+      onkeydown="if(event.key==='Enter')sendManual()"/>
     <button id="sendBtn" onclick="sendManual()">↑</button>
   </div>
 </div>
 
 <script>
-/* ════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    CONFIG
-════════════════════════════════════════════ */
+   Using llama-3.1-8b-instant = fastest Groq model
+   ~200-400ms response time
+══════════════════════════════════════════════ */
 const GROQ_KEY   = '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';
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_MODEL = 'llama-3.1-8b-instant'; // fastest model available
 
-// After this silence → AI generates a polished slide
-const SILENCE_AI_MS   = 1800;
-// After this silence → theme changes for next topic
-const SILENCE_THEME_MS = 3500;
+// Silence before generating slide
+const SILENCE_MS = 1400;
 
-/* ════════════════════════════════════════════
-   NUMBER TRIGGER PATTERNS
-   Detects spoken numbers and shows overlay instantly
-════════════════════════════════════════════ */
-const NUMBER_PATTERNS = [
-  // Italian
-  { re: /(\d[\d.,]*\s*(miliard[io]|billion[i]?))/i, suffix: '' },
-  { re: /(\d[\d.,]*\s*(milion[ie]|million[i]?))/i,  suffix: '' },
-  { re: /(\d[\d.,]*\s*(mila|k\b))/i,                suffix: '' },
-  { re: /(\d[\d.,]*\s*%)/i,                          suffix: '' },
-  { re: /(\d[\d.,]*\s*€)/i,                          suffix: '' },
-  { re: /(\d[\d.,]*\s*\$)/i,                         suffix: '' },
-  { re: /(€\s*\d[\d.,]*)/i,                          suffix: '' },
-  { re: /(\$\s*\d[\d.,]*)/i,                         suffix: '' },
-  // standalone big number ≥ 4 digits
-  { re: /\b(\d{4,}[\d.,]*)\b/,                       suffix: '' },
-  // ordinal / ranking
-  { re: /\b(primo|secondo|terzo|1°|2°|3°|#1|#2|#3|first|second|third)\b/i, suffix: '' },
-];
-
-/* ════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    THEMES
-════════════════════════════════════════════ */
+══════════════════════════════════════════════ */
 const THEMES = [
   {bg:'#ffffff',h1:'#1d1d1f',h2:'#6e6e73',ac:'#0071e3',card:'#f5f5f7',lgt:true},
   {bg:'#1d1d1f',h1:'#f5f5f7',h2:'#a1a1a6',ac:'#2997ff',card:'#2c2c2e',lgt:false},
@@ -209,510 +286,447 @@ const THEMES = [
   {bg:'#0a0a0f',h1:'#ffffff',h2:'#8e8e93',ac:'#bf5af2',card:'rgba(255,255,255,.06)',lgt:false},
 ];
 
-/* ════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    STATE
-════════════════════════════════════════════ */
-let listening     = false;
-let recognition   = null;
-let currentLang   = 'it-IT';
-let themeIdx      = 0;
-let confirmedWords = [];
-let interimText    = '';
-let lastRendered   = '';
-let aiRunning      = false;
+══════════════════════════════════════════════ */
+let listening      = false;
+let recognition    = null;
+let currentLang    = 'it-IT';
+let themeIdx       = 0;
+let confirmed      = '';   // final recognised text
+let interim        = '';   // partial (shown in transcript bar)
+let silTimer       = null;
 let aiAbort        = null;
-let silAiTimer     = null;
-let silThemeTimer  = null;
-let overlayTimer   = null;
-let lastAiText     = '';   // avoid duplicate AI calls
+let aiRunning      = false;
+let lastSentText   = '';   // avoid duplicate calls
 
-/* ════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    WAVEFORM
-════════════════════════════════════════════ */
+══════════════════════════════════════════════ */
 setInterval(() => {
   if (!listening) return;
-  document.querySelectorAll('.wb').forEach(b => b.style.height = (3 + Math.random()*14)+'px');
+  document.querySelectorAll('.wb').forEach(b =>
+    b.style.height = (3 + Math.random() * 14) + 'px');
 }, 90);
 
-/* ════════════════════════════════════════════
-   SPEECH
-════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   TRANSCRIPT BAR — shows what mic hears live
+   This is the ONLY live element. Not the slide.
+══════════════════════════════════════════════ */
+function updateTranscript() {
+  const bar = document.getElementById('transcriptBar');
+  const conf = document.getElementById('confirmedSpan');
+  const int  = document.getElementById('interimSpan');
+  if (!confirmed && !interim) {
+    bar.classList.remove('show');
+    return;
+  }
+  // Show last ~120 chars of confirmed
+  const confText = confirmed.slice(-120);
+  conf.textContent = confText + (confText && interim ? ' ' : '');
+  int.textContent  = interim;
+  bar.classList.add('show');
+}
+
+/* ══════════════════════════════════════════════
+   SPEECH RECOGNITION
+══════════════════════════════════════════════ */
 function buildRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) return null;
+
   const r = new SR();
-  r.lang = currentLang;
-  r.continuous = true;
-  r.interimResults = true;
+  r.lang           = currentLang;
+  r.continuous     = true;
+  r.interimResults = true; // for transcript bar only
 
   r.onresult = ev => {
-    let interim = '', fin = '';
+    let newFinal = '';
+    interim = '';
+
     for (let i = ev.resultIndex; i < ev.results.length; i++) {
-      const t = ev.results[i][0].transcript;
-      if (ev.results[i].isFinal) fin += t;
-      else interim += t;
-    }
-    interimText = interim;
-    if (fin) {
-      const newWords = fin.trim().split(/\s+/).filter(Boolean);
-      confirmedWords.push(...newWords);
-      if (confirmedWords.length > 50) confirmedWords = confirmedWords.slice(-50);
+      if (ev.results[i].isFinal) {
+        newFinal += ev.results[i][0].transcript;
+      } else {
+        interim += ev.results[i][0].transcript;
+      }
     }
 
-    const full = (confirmedWords.join(' ') + ' ' + interimText).trim();
+    if (newFinal) {
+      confirmed += (confirmed ? ' ' : '') + newFinal.trim();
+      // Keep buffer at ~300 chars max
+      if (confirmed.length > 300) confirmed = confirmed.slice(-300);
+    }
 
-    // ── 1. INSTANT NUMBER OVERLAY ──────────────────
-    checkNumberOverlay(full);
+    updateTranscript();
 
-    // ── 2. LIVE SLIDE (word-by-word) ───────────────
-    renderLive(full);
-
-    // ── 3. AI POLISH after silence ─────────────────
-    clearTimeout(silAiTimer);
-    silAiTimer = setTimeout(() => {
-      const text = confirmedWords.join(' ').trim();
-      confirmedWords = [];
-      interimText = '';
-      if (text.length > 8 && text !== lastAiText) {
-        lastAiText = text;
+    // Reset silence timer on every new speech
+    clearTimeout(silTimer);
+    silTimer = setTimeout(() => {
+      const text = confirmed.trim();
+      interim = '';
+      confirmed = '';
+      updateTranscript();
+      if (text.length > 6 && text !== lastSentText) {
+        lastSentText = text;
         callAI(text);
       }
-    }, SILENCE_AI_MS);
-
-    // ── 4. THEME CHANGE after longer silence ────────
-    clearTimeout(silThemeTimer);
-    silThemeTimer = setTimeout(() => {
-      themeIdx = (themeIdx + 1) % THEMES.length;
-    }, SILENCE_THEME_MS);
+    }, SILENCE_MS);
   };
 
-  r.onerror = ev => { if (ev.error === 'not-allowed') stopListening(); };
-  r.onend   = () => { if (listening) setTimeout(() => { try { recognition.start(); } catch(_){} }, 80); };
+  r.onerror = ev => {
+    // Ignore no-speech errors (common), only stop on permission denied
+    if (ev.error === 'not-allowed') stopListening();
+  };
+
+  r.onend = () => {
+    if (listening) setTimeout(() => { try { recognition.start(); } catch(_){} }, 80);
+  };
+
   return r;
 }
 
-/* ════════════════════════════════════════════
-   NUMBER OVERLAY — fires instantly
-════════════════════════════════════════════ */
-let lastOverlayMatch = '';
-function checkNumberOverlay(text) {
-  for (const p of NUMBER_PATTERNS) {
-    const m = text.match(p.re);
-    if (m) {
-      const match = m[0].trim();
-      if (match === lastOverlayMatch) return;
-      lastOverlayMatch = match;
-      showOverlay(match, '');
-      return;
-    }
-  }
-}
-
-function showOverlay(num, label) {
-  const ov = document.getElementById('overlay');
-  document.getElementById('overlayNum').textContent   = num;
-  document.getElementById('overlayLabel').textContent = label;
-  ov.classList.add('show');
-  clearTimeout(overlayTimer);
-  overlayTimer = setTimeout(() => {
-    ov.classList.remove('show');
-    lastOverlayMatch = '';
-  }, 2800);
-}
-
-/* ════════════════════════════════════════════
-   LIVE RENDER — instant, no AI
-════════════════════════════════════════════ */
-function renderLive(text) {
-  if (!text || text === lastRendered) return;
-  lastRendered = text;
-
-  const t     = THEMES[themeIdx % THEMES.length];
-  const words = text.trim().split(/\s+/);
-  const titleW = words.slice(0, 6);
-  const bodyW  = words.slice(6);
-
-  const wrap = (w, i, total) => {
-    const isLast = (i === total - 1);
-    return isLast ? `<span class="wnew">${x(w)}</span>` : x(w);
-  };
-
-  const titleHTML = titleW.map((w,i) => wrap(w, i + (bodyW.length ? 999 : 0), words.length)).join(' ');
-  // only animate very last word
-  const bodyHTML  = bodyW.map((w,i) => {
-    const absIdx = titleW.length + i;
-    return absIdx === words.length - 1 ? `<span class="wnew">${x(w)}</span>` : x(w);
-  }).join(' ');
-
-  const dot  = `<span class="cur" style="background:${t.ac};"></span>`;
-  const grid = t.lgt ? 'rgba(0,0,0,.032)' : 'rgba(255,255,255,.022)';
-
-  setSlideHTML(`
-<div style="width:100%;height:100%;background:${t.bg};display:flex;flex-direction:column;
-  align-items:center;justify-content:center;padding:9% 11%;position:relative;overflow:hidden;
-  font-family:'Inter',-apple-system,sans-serif;text-align:center;">
-  <div style="position:absolute;inset:0;background-image:radial-gradient(${grid} 1px,transparent 1px);background-size:24px 24px;pointer-events:none;"></div>
-  <div style="position:absolute;top:-20%;right:-14%;width:48%;aspect-ratio:1;border-radius:50%;background:${t.ac}12;filter:blur(70px);pointer-events:none;"></div>
-  <div style="position:absolute;bottom:-18%;left:-12%;width:40%;aspect-ratio:1;border-radius:50%;background:${t.ac}0c;filter:blur(56px);pointer-events:none;"></div>
-  <div style="display:inline-flex;align-items:center;background:${t.ac}1a;border:1px solid ${t.ac}28;border-radius:20px;padding:5px 15px;margin-bottom:5%;z-index:1;">
-    <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:${t.ac};text-transform:uppercase;">LIVE</span>
-  </div>
-  <h1 style="font-size:clamp(26px,5.5vw,64px);font-weight:800;color:${t.h1};line-height:1.04;letter-spacing:-2.5px;margin-bottom:${bodyW.length?'4%':'0'};z-index:1;max-width:860px;">
-    ${titleHTML}${!bodyW.length ? dot : ''}
-  </h1>
-  ${bodyW.length ? `<p style="font-size:clamp(15px,2.1vw,24px);color:${t.h2};line-height:1.5;max-width:640px;font-weight:400;z-index:1;">${bodyHTML}${dot}</p>` : ''}
-  <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${t.ac}00,${t.ac},${t.ac}00);pointer-events:none;"></div>
-</div>`, false);
-
-  document.getElementById('slideWrap').className = 'live';
-  showBadge('live','In ascolto');
-}
-
-/* ════════════════════════════════════════════
-   AI POLISH — 8 smart layouts like Speaky
-════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   AI SLIDE GENERATION
+   Fast model + concise prompt = ~300ms
+══════════════════════════════════════════════ */
 async function callAI(text) {
+  // Cancel any pending request
   if (aiAbort) { aiAbort.abort(); aiAbort = null; }
   aiRunning = true;
   aiAbort   = new AbortController();
-  document.getElementById('slideWrap').className = 'ai';
-  showBadge('ai','AI…');
 
-  const sys = `Sei un generatore di slide live stile Apple Keynote/Speaky.
-Rispondi SOLO con JSON valido, zero markdown.
+  // Show thinking state
+  setThinking(true);
 
-Scegli il layout più adatto tra questi 8:
-- "tagline"   → titolo grande + sottotitolo (apertura, intro, concetto principale)
-- "bullets"   → titolo + 3-4 punti elenco (lista, processo, caratteristiche)
-- "metrics"   → titolo + 2-3 metriche numeriche grandi (dati, performance, risultati)
-- "steps"     → titolo + 3-4 passaggi numerati (how-to, procedura, fasi)
-- "quote"     → citazione grande + autore opzionale (principio, motto, ispirazione)
-- "team"      → titolo + 2-3 persone con ruolo (team, fondatori, speaker)
-- "timeline"  → titolo + 3-4 eventi con anno (storia, roadmap, milestones)
-- "image"     → titolo + emoji visiva grande + descrizione (prodotto, luogo, concetto visivo)
+  const sys = `Genera una slide visiva professionale basata su ciò che l'utente ha detto.
+Rispondi SOLO con JSON valido. Zero markdown. Zero spiegazioni.
 
-Schema JSON:
+Scegli il layout più adatto:
+- "tagline"  → titolo grande + sottotitolo breve (concetti, intro, affermazioni)
+- "bullets"  → titolo + 3-4 punti chiave (liste, processi, vantaggi)
+- "metrics"  → titolo + 2-3 numeri grandi con etichetta (statistiche, dati, KPI)
+- "steps"    → titolo + 3-4 passi numerati (come fare, procedure, fasi)
+- "quote"    → citazione impattante + autore (frasi, principi, idee)
+- "twocol"   → titolo + colonna sinistra / colonna destra (confronti, pro/contro)
+
+JSON schema:
 {
-  "layout": "tagline|bullets|metrics|steps|quote|team|timeline|image",
-  "tag": "KEYWORD BREVE",
-  "title": "max 6 parole incisive",
-  "subtitle": "max 14 parole (per tagline/image)",
-  "items": ["item 1","item 2","item 3"],
-  "metrics": [{"value":"87%","label":"Efficienza"},{"value":"3×","label":"Crescita"}],
-  "quote": "citazione",
-  "author": "Autore (per quote)",
-  "people": [{"name":"Mario","role":"CEO"},{"name":"Sara","role":"CTO"}],
-  "events": [{"year":"2020","text":"Fondazione"},{"year":"2022","text":"Lancio"}],
-  "emoji": "🚀"
+  "layout": "tagline|bullets|metrics|steps|quote|twocol",
+  "tag": "2-3 PAROLE CHIAVE",
+  "title": "Titolo breve e d'impatto, max 6 parole",
+  "subtitle": "Frase descrittiva, max 12 parole (solo per tagline)",
+  "items": ["Punto 1 chiaro","Punto 2 chiaro","Punto 3 chiaro"],
+  "metrics": [{"value":"95%","label":"Soddisfazione"},{"value":"3×","label":"Crescita"}],
+  "quote": "La citazione esatta",
+  "author": "Nome Autore",
+  "left": ["punto sx 1","punto sx 2"],
+  "right": ["punto dx 1","punto dx 2"],
+  "leftTitle": "Pro",
+  "rightTitle": "Contro"
 }
 
-Rispondi in italiano. Conciso, denso, impatto alto.`;
+REGOLE IMPORTANTI:
+- Il contenuto DEVE essere sensato rispetto a ciò che l'utente ha detto
+- Titoli brevi e d'impatto, NON frasi lunghe
+- Punti elenco: max 8-10 parole ciascuno
+- Se menzioni numeri nel testo, usa layout "metrics"
+- Rispondi nella stessa lingua dell'utente`;
 
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST', signal: aiAbort.signal,
-      headers: {'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      method: 'POST',
+      signal: aiAbort.signal,
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+GROQ_KEY },
       body: JSON.stringify({
-        model: GROQ_MODEL, max_tokens: 450, temperature: 0.55,
-        messages: [{role:'system',content:sys},{role:'user',content:'"'+text+'"'}]
+        model: GROQ_MODEL,
+        max_tokens: 350,
+        temperature: 0.4, // lower = more consistent, faster
+        messages: [
+          { role:'system', content: sys },
+          { role:'user',   content: text }
+        ]
       })
     });
-    const data  = await res.json();
-    const raw   = (data.choices?.[0]?.message?.content||'').replace(/```json|```/g,'').trim();
+
+    const data = await res.json();
+    const raw  = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g,'').trim();
+
     let parsed;
     try { parsed = JSON.parse(raw); }
-    catch { parsed = { layout:'tagline', tag:'SLIDE', title: text.split(' ').slice(0,5).join(' '), subtitle: text }; }
+    catch {
+      // Fallback: extract JSON from response
+      const match = raw.match(/\{[\s\S]*\}/);
+      try { parsed = JSON.parse(match?.[0] || '{}'); }
+      catch { parsed = { layout:'tagline', tag:'SLIDE', title: text.split(' ').slice(0,5).join(' '), subtitle: text.slice(0,60) }; }
+    }
 
-    const html = buildLayout(parsed, themeIdx);
-    themeIdx   = (themeIdx + 1) % THEMES.length;
-    setSlideHTML(html, true);
-    document.getElementById('slideWrap').className = listening ? 'live' : '';
-    if (listening) showBadge('live','In ascolto'); else hideBadge();
+    renderSlide(parsed);
 
   } catch(err) {
     if (err.name !== 'AbortError') {
-      document.getElementById('slideWrap').className = '';
-      hideBadge();
+      setThinking(false);
     }
   }
-  aiRunning = false; aiAbort = null;
+
+  aiRunning = false;
+  aiAbort   = null;
 }
 
-/* ════════════════════════════════════════════
-   8 LAYOUT BUILDERS
-════════════════════════════════════════════ */
-function buildLayout(d, idx) {
-  const t = THEMES[idx % THEMES.length];
+/* ══════════════════════════════════════════════
+   RENDER SLIDE
+══════════════════════════════════════════════ */
+function renderSlide(d) {
+  const t = THEMES[themeIdx % THEMES.length];
+  themeIdx++;
+
+  const html = buildLayout(d, t);
+  const el   = document.getElementById('slide');
+
+  el.classList.add('out');
+  setTimeout(() => {
+    el.innerHTML = html;
+    el.classList.remove('out');
+    setThinking(false);
+  }, 200);
+}
+
+function setThinking(on) {
+  const wrap  = document.getElementById('slideWrap');
+  const bar   = document.getElementById('thinkBar');
+  const badge = document.getElementById('badge');
+  if (on) {
+    wrap.classList.add('thinking');
+    bar.classList.add('show');
+    badge.className = 'show thinking';
+    document.getElementById('blabel').textContent = 'Elaboro…';
+  } else {
+    wrap.classList.remove('thinking');
+    bar.classList.remove('show');
+    if (listening) {
+      badge.className = 'show';
+      document.getElementById('blabel').textContent = 'In ascolto';
+    } else {
+      badge.className = '';
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════
+   LAYOUT BUILDERS  — clean, readable slides
+══════════════════════════════════════════════ */
+function buildLayout(d, t) {
   switch(d.layout) {
     case 'bullets':  return lBullets(d,t);
     case 'metrics':  return lMetrics(d,t);
     case 'steps':    return lSteps(d,t);
     case 'quote':    return lQuote(d,t);
-    case 'team':     return lTeam(d,t);
-    case 'timeline': return lTimeline(d,t);
-    case 'image':    return lImage(d,t);
+    case 'twocol':   return lTwoCol(d,t);
     default:         return lTagline(d,t);
   }
 }
 
-function x(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function bg(t){ return t.lgt?'rgba(0,0,0,.032)':'rgba(255,255,255,.022)'; }
-function glow(t){ return `<div style="position:absolute;top:-20%;right:-14%;width:48%;aspect-ratio:1;border-radius:50%;background:${t.ac}12;filter:blur(70px);pointer-events:none;"></div><div style="position:absolute;bottom:-18%;left:-12%;width:38%;aspect-ratio:1;border-radius:50%;background:${t.ac}0c;filter:blur(56px);pointer-events:none;"></div>`; }
-function grid(t){ return `<div style="position:absolute;inset:0;background-image:radial-gradient(${bg(t)} 1px,transparent 1px);background-size:24px 24px;pointer-events:none;"></div>`; }
-function tagPill(d,t){ return `<div style="display:inline-flex;align-items:center;background:${t.ac}1a;border:1px solid ${t.ac}28;border-radius:20px;padding:5px 15px;margin-bottom:5%;z-index:1;"><span style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:${t.ac};text-transform:uppercase;">${x(d.tag||'SLIDE')}</span></div>`; }
-function accentLine(t){ return `<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${t.ac}00,${t.ac},${t.ac}00);pointer-events:none;"></div>`; }
-function wrap(inner,t){ return `<div style="width:100%;height:100%;background:${t.bg};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9% 11%;position:relative;overflow:hidden;font-family:'Inter',-apple-system,sans-serif;text-align:center;">${grid(t)}${glow(t)}${inner}${accentLine(t)}</div>`; }
+// helpers
+const x = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const dot  = t => `<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${t.ac}00,${t.ac},${t.ac}00);"></div>`;
+const blob = t => `<div style="position:absolute;top:-20%;right:-12%;width:45%;aspect-ratio:1;border-radius:50%;background:${t.ac}10;filter:blur(70px);pointer-events:none;"></div><div style="position:absolute;bottom:-18%;left:-10%;width:35%;aspect-ratio:1;border-radius:50%;background:${t.ac}0a;filter:blur(55px);pointer-events:none;"></div>`;
+const gridBg = t => `background-image:radial-gradient(${t.lgt?'rgba(0,0,0,.028)':'rgba(255,255,255,.02)'} 1px,transparent 1px);background-size:26px 26px;`;
+const pill = (d,t) => `<div style="display:inline-flex;align-items:center;background:${t.ac}18;border:1px solid ${t.ac}26;border-radius:20px;padding:5px 14px;margin-bottom:4%;"><span style="font-size:9px;font-weight:700;letter-spacing:1.8px;color:${t.ac};text-transform:uppercase;">${x(d.tag||'SLIDE')}</span></div>`;
 
 // 1. TAGLINE
 function lTagline(d,t){
-  return wrap(`
-    ${tagPill(d,t)}
-    <h1 style="font-size:clamp(26px,5.5vw,64px);font-weight:800;color:${t.h1};line-height:1.04;letter-spacing:-2.5px;margin-bottom:${d.subtitle?'4%':'0'};z-index:1;max-width:860px;">${x(d.title)}</h1>
-    ${d.subtitle?`<p style="font-size:clamp(15px,2vw,23px);color:${t.h2};line-height:1.5;max-width:620px;font-weight:400;z-index:1;">${x(d.subtitle)}</p>`:''}
-  `,t);
-}
+  return `<div style="width:100%;height:100%;background:${t.bg};${gridBg(t)}display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9% 12%;position:relative;overflow:hidden;font-family:'Inter',-apple-system,sans-serif;text-align:center;">
+  ${blob(t)}
+  <div style="z-index:1;display:flex;flex-direction:column;align-items:center;">
+    ${pill(d,t)}
+    <h1 style="font-size:clamp(28px,5.5vw,66px);font-weight:800;color:${t.h1};line-height:1.04;letter-spacing:-2.5px;margin-bottom:${d.subtitle?'3%':'0'};max-width:860px;">${x(d.title)}</h1>
+    ${d.subtitle?`<p style="font-size:clamp(14px,1.9vw,22px);color:${t.h2};line-height:1.5;max-width:600px;font-weight:400;">${x(d.subtitle)}</p>`:''}
+  </div>
+  ${dot(t)}
+</div>`;}
 
 // 2. BULLETS
 function lBullets(d,t){
-  const items=(d.items||[]).slice(0,4);
-  const div=t.lgt?'rgba(0,0,0,.06)':'rgba(255,255,255,.06)';
-  const rows=items.map((b,i)=>`
-    <div style="display:flex;align-items:flex-start;gap:4%;padding:2.5% 0;${i<items.length-1?`border-bottom:1px solid ${div};`:''}">
-      <div style="width:clamp(22px,3vw,32px);height:clamp(22px,3vw,32px);border-radius:8px;background:${t.ac}1a;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:clamp(11px,1.4vw,15px);font-weight:700;color:${t.ac};">${i+1}</div>
-      <div style="font-size:clamp(13px,1.7vw,20px);color:${t.h1};line-height:1.45;font-weight:400;opacity:.88;padding-top:.5%;">${x(b)}</div>
-    </div>`).join('');
-  return `<div style="width:100%;height:100%;background:${t.bg};display:flex;flex-direction:column;font-family:'Inter',-apple-system,sans-serif;overflow:hidden;position:relative;">
-    ${grid(t)}
-    <div style="padding:5.5% 7% 4%;border-bottom:1px solid ${div};">
-      <div style="font-size:clamp(8px,.9vw,11px);font-weight:700;letter-spacing:1.5px;color:${t.ac};text-transform:uppercase;margin-bottom:2%;">${x(d.tag||'OVERVIEW')}</div>
-      <h2 style="font-size:clamp(18px,2.8vw,34px);font-weight:700;color:${t.h1};letter-spacing:-1.2px;line-height:1.1;">${x(d.title)}</h2>
-    </div>
-    <div style="flex:1;padding:2% 7% 4%;display:flex;flex-direction:column;justify-content:center;">${rows}</div>
-    <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,${t.ac},${t.ac}00);"></div>
-    ${accentLine(t)}
-  </div>`;
-}
+  const items = (d.items||[]).slice(0,4);
+  const sep   = t.lgt ? 'rgba(0,0,0,.065)' : 'rgba(255,255,255,.065)';
+  const rows  = items.map((b,i) => `
+  <div style="display:flex;align-items:flex-start;gap:3.5%;padding:2.8% 0;${i<items.length-1?`border-bottom:1px solid ${sep};`:''}">
+    <div style="min-width:clamp(24px,3.2vw,36px);height:clamp(24px,3.2vw,36px);border-radius:9px;background:${t.ac}18;display:flex;align-items:center;justify-content:center;font-size:clamp(11px,1.4vw,15px);font-weight:800;color:${t.ac};flex-shrink:0;margin-top:1px;">${i+1}</div>
+    <span style="font-size:clamp(13px,1.7vw,20px);color:${t.h1};line-height:1.45;font-weight:450;padding-top:1px;opacity:.92;">${x(b)}</span>
+  </div>`).join('');
+  return `<div style="width:100%;height:100%;background:${t.bg};${gridBg(t)}display:flex;flex-direction:column;font-family:'Inter',-apple-system,sans-serif;overflow:hidden;position:relative;">
+  <div style="padding:5.5% 7% 3.5%;border-bottom:1px solid ${sep};flex-shrink:0;">
+    <div style="font-size:clamp(8px,.9vw,10px);font-weight:700;letter-spacing:2px;color:${t.ac};text-transform:uppercase;margin-bottom:1.8%;">${x(d.tag||'PUNTI CHIAVE')}</div>
+    <h2 style="font-size:clamp(20px,2.9vw,36px);font-weight:700;color:${t.h1};letter-spacing:-1.2px;line-height:1.1;">${x(d.title)}</h2>
+  </div>
+  <div style="flex:1;padding:0 7%;display:flex;flex-direction:column;justify-content:center;">${rows}</div>
+  <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,${t.ac},${t.ac}00);"></div>
+  ${dot(t)}
+</div>`;}
 
 // 3. METRICS
 function lMetrics(d,t){
-  const mets=(d.metrics||[]).slice(0,3);
-  const cards=mets.map(m=>`
-    <div style="flex:1;min-width:0;background:${t.card};border-radius:clamp(12px,2vw,22px);padding:6% 4%;text-align:center;border:1px solid ${t.lgt?'rgba(0,0,0,.06)':'rgba(255,255,255,.07)'};">
-      <div style="font-size:clamp(32px,6.5vw,72px);font-weight:900;color:${t.ac};letter-spacing:-3px;line-height:1;">${x(m.value)}</div>
-      <div style="font-size:clamp(9px,1.1vw,13px);font-weight:600;color:${t.h2};letter-spacing:.8px;text-transform:uppercase;margin-top:8%;">${x(m.label)}</div>
-    </div>`).join('');
-  return `<div style="width:100%;height:100%;background:${t.bg};display:flex;flex-direction:column;font-family:'Inter',-apple-system,sans-serif;padding:5.5% 6%;overflow:hidden;position:relative;">
-    ${grid(t)}${glow(t)}
-    <div style="margin-bottom:5%;position:relative;z-index:1;">
-      <div style="font-size:clamp(8px,.9vw,11px);font-weight:700;letter-spacing:1.5px;color:${t.ac};text-transform:uppercase;margin-bottom:2%;">${x(d.tag||'METRICS')}</div>
-      <h2 style="font-size:clamp(18px,2.8vw,34px);font-weight:700;color:${t.h1};letter-spacing:-1.2px;">${x(d.title)}</h2>
-    </div>
-    <div style="flex:1;display:flex;align-items:center;gap:3.5%;position:relative;z-index:1;">${cards}</div>
-    ${accentLine(t)}
-  </div>`;
-}
+  const mets  = (d.metrics||[]).slice(0,3);
+  const sep   = t.lgt ? 'rgba(0,0,0,.065)' : 'rgba(255,255,255,.065)';
+  const cards = mets.map(m=>`
+  <div style="flex:1;min-width:0;background:${t.card};border-radius:clamp(14px,2.2vw,24px);padding:6% 4%;text-align:center;border:1px solid ${sep};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8%;">
+    <div style="font-size:clamp(34px,7vw,78px);font-weight:900;color:${t.ac};letter-spacing:-3px;line-height:1;">${x(m.value)}</div>
+    <div style="font-size:clamp(9px,1.1vw,13px);font-weight:600;color:${t.h2};letter-spacing:1px;text-transform:uppercase;">${x(m.label)}</div>
+  </div>`).join('');
+  return `<div style="width:100%;height:100%;background:${t.bg};${gridBg(t)}display:flex;flex-direction:column;font-family:'Inter',-apple-system,sans-serif;padding:5.5% 6%;overflow:hidden;position:relative;">
+  ${blob(t)}
+  <div style="margin-bottom:5%;position:relative;z-index:1;">
+    <div style="font-size:clamp(8px,.9vw,10px);font-weight:700;letter-spacing:2px;color:${t.ac};text-transform:uppercase;margin-bottom:1.8%;">${x(d.tag||'DATI')}</div>
+    <h2 style="font-size:clamp(20px,2.9vw,36px);font-weight:700;color:${t.h1};letter-spacing:-1.2px;">${x(d.title)}</h2>
+  </div>
+  <div style="flex:1;display:flex;align-items:stretch;gap:3.5%;position:relative;z-index:1;">${cards}</div>
+  ${dot(t)}
+</div>`;}
 
 // 4. STEPS
 function lSteps(d,t){
-  const items=(d.items||[]).slice(0,4);
-  const cols=items.map((s,i)=>`
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:10%;position:relative;">
-      ${i<items.length-1?`<div style="position:absolute;top:12%;right:-50%;width:100%;height:2px;background:linear-gradient(90deg,${t.ac}40,${t.ac}10);z-index:0;"></div>`:''}
-      <div style="width:clamp(32px,4.5vw,52px);height:clamp(32px,4.5vw,52px);border-radius:50%;background:${t.ac};display:flex;align-items:center;justify-content:center;font-size:clamp(13px,1.8vw,20px);font-weight:800;color:#fff;z-index:1;flex-shrink:0;">${i+1}</div>
-      <div style="font-size:clamp(11px,1.3vw,15px);color:${t.h1};line-height:1.4;font-weight:500;text-align:center;opacity:.9;">${x(s)}</div>
-    </div>`).join('');
-  return `<div style="width:100%;height:100%;background:${t.bg};display:flex;flex-direction:column;font-family:'Inter',-apple-system,sans-serif;padding:5.5% 6%;overflow:hidden;position:relative;">
-    ${grid(t)}
-    <div style="margin-bottom:6%;">
-      <div style="font-size:clamp(8px,.9vw,11px);font-weight:700;letter-spacing:1.5px;color:${t.ac};text-transform:uppercase;margin-bottom:2%;">${x(d.tag||'STEPS')}</div>
-      <h2 style="font-size:clamp(18px,2.8vw,34px);font-weight:700;color:${t.h1};letter-spacing:-1.2px;">${x(d.title)}</h2>
-    </div>
-    <div style="flex:1;display:flex;align-items:center;gap:5%;">${cols}</div>
-    ${accentLine(t)}
-  </div>`;
-}
+  const items = (d.items||[]).slice(0,4);
+  const cols  = items.map((s,i) => `
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:12%;position:relative;">
+    ${i<items.length-1?`<div style="position:absolute;top:11%;left:55%;width:90%;height:2px;background:linear-gradient(90deg,${t.ac}50,${t.ac}10);z-index:0;"></div>`:''}
+    <div style="width:clamp(34px,4.8vw,56px);height:clamp(34px,4.8vw,56px);border-radius:50%;background:${t.ac};display:flex;align-items:center;justify-content:center;font-size:clamp(14px,1.9vw,22px);font-weight:800;color:#fff;z-index:1;flex-shrink:0;box-shadow:0 4px 16px ${t.ac}44;">${i+1}</div>
+    <div style="font-size:clamp(11px,1.3vw,15px);color:${t.h1};line-height:1.4;font-weight:500;text-align:center;opacity:.9;">${x(s)}</div>
+  </div>`).join('');
+  return `<div style="width:100%;height:100%;background:${t.bg};${gridBg(t)}display:flex;flex-direction:column;font-family:'Inter',-apple-system,sans-serif;padding:5.5% 6%;overflow:hidden;position:relative;">
+  <div style="margin-bottom:7%;">
+    <div style="font-size:clamp(8px,.9vw,10px);font-weight:700;letter-spacing:2px;color:${t.ac};text-transform:uppercase;margin-bottom:1.8%;">${x(d.tag||'STEPS')}</div>
+    <h2 style="font-size:clamp(20px,2.9vw,36px);font-weight:700;color:${t.h1};letter-spacing:-1.2px;">${x(d.title)}</h2>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;gap:0;">${cols}</div>
+  ${dot(t)}
+</div>`;}
 
 // 5. QUOTE
 function lQuote(d,t){
-  return wrap(`
-    <div style="font-size:clamp(52px,11vw,110px);line-height:.72;color:${t.ac};font-weight:800;opacity:.17;margin-bottom:4%;z-index:1;font-family:Georgia,serif;">"</div>
-    <p style="font-size:clamp(17px,2.9vw,33px);font-weight:500;color:${t.h1};line-height:1.5;max-width:720px;font-style:italic;z-index:1;letter-spacing:-.3px;">${x(d.quote||d.title)}</p>
-    <div style="width:40px;height:2px;background:${t.ac};border-radius:1px;margin:5% auto;z-index:1;"></div>
-    ${d.author?`<div style="font-size:clamp(12px,1.4vw,16px);font-weight:600;color:${t.h2};z-index:1;">— ${x(d.author)}</div>`:''}
-    <div style="font-size:clamp(8px,.9vw,11px);font-weight:700;letter-spacing:1.5px;color:${t.ac};text-transform:uppercase;margin-top:3%;z-index:1;opacity:.6;">${x(d.tag||'CITAZIONE')}</div>
-  `,t);
-}
+  return `<div style="width:100%;height:100%;background:${t.bg};${gridBg(t)}display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10% 14%;position:relative;overflow:hidden;font-family:'Inter',-apple-system,sans-serif;text-align:center;">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,${t.ac}0d 0%,transparent 68%);pointer-events:none;"></div>
+  <div style="font-size:clamp(56px,12vw,120px);line-height:.7;color:${t.ac};font-weight:800;opacity:.15;margin-bottom:3%;z-index:1;font-family:Georgia,serif;">"</div>
+  <p style="font-size:clamp(17px,2.9vw,34px);font-weight:500;color:${t.h1};line-height:1.48;max-width:720px;font-style:italic;z-index:1;letter-spacing:-.3px;">${x(d.quote||d.title)}</p>
+  <div style="width:40px;height:2px;background:${t.ac};border-radius:1px;margin:5% auto;z-index:1;"></div>
+  ${d.author?`<div style="font-size:clamp(12px,1.4vw,16px);font-weight:600;color:${t.h2};z-index:1;">— ${x(d.author)}</div>`:''}
+  ${dot(t)}
+</div>`;}
 
-// 6. TEAM
-function lTeam(d,t){
-  const people=(d.people||[]).slice(0,3);
-  const avatarColors=['#0071e3','#34c759','#ff9f0a','#ff2d55','#bf5af2'];
-  const cards=people.map((p,i)=>`
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5%;">
-      <div style="width:clamp(48px,7vw,80px);height:clamp(48px,7vw,80px);border-radius:50%;background:${avatarColors[i%avatarColors.length]};display:flex;align-items:center;justify-content:center;font-size:clamp(20px,3vw,34px);font-weight:800;color:#fff;">${x((p.name||'?')[0].toUpperCase())}</div>
-      <div style="font-size:clamp(13px,1.6vw,18px);font-weight:700;color:${t.h1};">${x(p.name)}</div>
-      <div style="font-size:clamp(10px,1.1vw,13px);color:${t.ac};font-weight:600;letter-spacing:.5px;">${x(p.role)}</div>
-    </div>`).join('');
-  return wrap(`
-    ${tagPill(d,t)}
-    <h2 style="font-size:clamp(20px,3vw,36px);font-weight:700;color:${t.h1};letter-spacing:-1px;margin-bottom:7%;z-index:1;">${x(d.title)}</h2>
-    <div style="display:flex;gap:6%;width:100%;max-width:700px;z-index:1;">${cards}</div>
-  `,t);
-}
-
-// 7. TIMELINE
-function lTimeline(d,t){
-  const events=(d.events||[]).slice(0,4);
-  const div=t.lgt?'rgba(0,0,0,.08)':'rgba(255,255,255,.08)';
-  const items=events.map((e,i)=>`
-    <div style="display:flex;align-items:flex-start;gap:4%;">
-      <div style="display:flex;flex-direction:column;align-items:center;gap:0;flex-shrink:0;">
-        <div style="width:12px;height:12px;border-radius:50%;background:${t.ac};margin-top:3px;"></div>
-        ${i<events.length-1?`<div style="width:2px;flex:1;background:linear-gradient(180deg,${t.ac}60,${t.ac}10);min-height:24px;"></div>`:''}
-      </div>
-      <div style="padding-bottom:${i<events.length-1?'4%':'0'};">
-        <div style="font-size:clamp(10px,1.2vw,14px);font-weight:700;color:${t.ac};margin-bottom:2px;">${x(e.year)}</div>
-        <div style="font-size:clamp(12px,1.5vw,17px);color:${t.h1};line-height:1.4;">${x(e.text)}</div>
-      </div>
-    </div>`).join('');
-  return `<div style="width:100%;height:100%;background:${t.bg};display:flex;font-family:'Inter',-apple-system,sans-serif;overflow:hidden;position:relative;">
-    ${grid(t)}
-    <div style="width:38%;background:${t.ac};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8% 6%;flex-shrink:0;position:relative;overflow:hidden;">
-      <div style="position:absolute;top:-20%;left:-20%;width:80%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.12);"></div>
-      <div style="font-size:clamp(8px,.9vw,11px);letter-spacing:2px;color:rgba(255,255,255,.7);font-weight:700;text-transform:uppercase;margin-bottom:4%;z-index:1;">${x(d.tag||'TIMELINE')}</div>
-      <h2 style="font-size:clamp(18px,2.8vw,34px);font-weight:800;color:#fff;letter-spacing:-1px;line-height:1.1;z-index:1;text-align:center;">${x(d.title)}</h2>
-    </div>
-    <div style="flex:1;padding:7% 7%;display:flex;flex-direction:column;justify-content:center;gap:0;">${items}</div>
-    ${accentLine(t)}
+// 6. TWO COLUMN (confronto)
+function lTwoCol(d,t){
+  const L    = (d.left||[]).slice(0,4);
+  const R    = (d.right||[]).slice(0,4);
+  const sep  = t.lgt ? 'rgba(0,0,0,.065)' : 'rgba(255,255,255,.065)';
+  const col  = (items, color, title) => `
+  <div style="flex:1;background:${color}12;border-radius:16px;padding:5% 5%;border:1px solid ${color}22;">
+    <div style="font-size:clamp(11px,1.3vw,15px);font-weight:700;color:${color};margin-bottom:4%;letter-spacing:-.2px;">${x(title)}</div>
+    ${items.map(i=>`<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:3%;"><span style="color:${color};font-weight:700;flex-shrink:0;margin-top:1px;">•</span><span style="font-size:clamp(11px,1.3vw,15px);color:${t.h1};line-height:1.4;opacity:.9;">${x(i)}</span></div>`).join('')}
   </div>`;
-}
+  return `<div style="width:100%;height:100%;background:${t.bg};${gridBg(t)}display:flex;flex-direction:column;font-family:'Inter',-apple-system,sans-serif;padding:5.5% 6%;overflow:hidden;position:relative;">
+  <div style="margin-bottom:4%;">
+    <div style="font-size:clamp(8px,.9vw,10px);font-weight:700;letter-spacing:2px;color:${t.ac};text-transform:uppercase;margin-bottom:1.8%;">${x(d.tag||'CONFRONTO')}</div>
+    <h2 style="font-size:clamp(20px,2.9vw,36px);font-weight:700;color:${t.h1};letter-spacing:-1.2px;">${x(d.title)}</h2>
+  </div>
+  <div style="flex:1;display:flex;gap:3.5%;">
+    ${col(L, t.ac, d.leftTitle||'Vantaggi')}
+    ${col(R, '#ff3b30', d.rightTitle||'Svantaggi')}
+  </div>
+  ${dot(t)}
+</div>`;}
 
-// 8. IMAGE
-function lImage(d,t){
-  const em=d.emoji||'🚀';
-  return `<div style="width:100%;height:100%;background:${t.bg};display:flex;font-family:'Inter',-apple-system,sans-serif;overflow:hidden;position:relative;">
-    ${grid(t)}
-    <div style="width:38%;background:${t.ac};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8%;padding:8% 5%;flex-shrink:0;position:relative;overflow:hidden;">
-      <div style="position:absolute;top:-15%;left:-15%;width:60%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.12);"></div>
-      <div style="position:absolute;bottom:-12%;right:-12%;width:50%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.08);"></div>
-      <div style="font-size:clamp(40px,7.5vw,80px);z-index:1;filter:drop-shadow(0 4px 12px rgba(0,0,0,.2));">${em}</div>
-      <div style="font-size:clamp(8px,.9vw,11px);letter-spacing:2px;color:rgba(255,255,255,.75);font-weight:700;text-transform:uppercase;z-index:1;">${x(d.tag||'LIVE')}</div>
-    </div>
-    <div style="flex:1;padding:7%;display:flex;flex-direction:column;justify-content:center;">
-      <h2 style="font-size:clamp(17px,2.7vw,32px);font-weight:700;color:${t.h1};margin-bottom:4%;letter-spacing:-.8px;line-height:1.15;">${x(d.title)}</h2>
-      ${d.subtitle?`<p style="font-size:clamp(12px,1.5vw,18px);color:${t.h2};line-height:1.55;">${x(d.subtitle)}</p>`:''}
-    </div>
-    ${accentLine(t)}
-  </div>`;
-}
-
-/* ════════════════════════════════════════════
-   SLIDE DOM
-════════════════════════════════════════════ */
-function setSlideHTML(html, animate) {
-  const el = document.getElementById('slide');
-  if (animate) {
-    el.classList.add('out');
-    setTimeout(() => { el.innerHTML = html; el.classList.remove('out'); }, 170);
-  } else {
-    el.innerHTML = html;
-  }
-}
-
-/* ════════════════════════════════════════════
-   BADGE
-════════════════════════════════════════════ */
-function showBadge(type, label) {
-  const b = document.getElementById('badge');
-  b.className = 'show' + (type==='ai'?' ai':'');
-  document.getElementById('blabel').textContent = label;
-}
-function hideBadge() { document.getElementById('badge').className = ''; }
-
-/* ════════════════════════════════════════════
-   MIC
-════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   MIC CONTROLS
+══════════════════════════════════════════════ */
 function toggleMic() { listening ? stopListening() : startListening(); }
 
 function startListening() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('Microfono non supportato. Usa Chrome o Safari.'); return; }
+  if (!SR) { alert('Usa Chrome o Safari per il microfono.'); return; }
   listening = true;
   if (recognition) { try { recognition.abort(); } catch(_){} }
   recognition = buildRecognition();
   try { recognition.start(); } catch(_){}
+
   document.getElementById('mic').className   = 'on';
   document.getElementById('mic').textContent  = '⏹';
   document.getElementById('wave').className   = 'on';
-  showBadge('live','In ascolto');
+  document.getElementById('badge').className  = 'show';
+  document.getElementById('blabel').textContent = 'In ascolto';
 }
 
 function stopListening() {
   listening = false;
-  clearTimeout(silAiTimer); clearTimeout(silThemeTimer);
+  clearTimeout(silTimer);
   if (recognition) { try { recognition.abort(); } catch(_){} }
+
+  // Flush remaining text
+  const text = confirmed.trim();
+  confirmed = ''; interim = '';
+  updateTranscript();
+
   document.getElementById('mic').className   = '';
   document.getElementById('mic').textContent  = '🎤';
   document.getElementById('wave').className   = '';
-  document.querySelectorAll('.wb').forEach(b => b.style.height='4px');
-  hideBadge();
-  document.getElementById('slideWrap').className='';
-  // flush remaining
-  const text = confirmedWords.join(' ').trim();
-  confirmedWords=[]; interimText='';
-  if (text.length>8 && text!==lastAiText){ lastAiText=text; callAI(text); }
-}
+  document.querySelectorAll('.wb').forEach(b => b.style.height = '4px');
+  document.getElementById('badge').className  = '';
+  document.getElementById('transcriptBar').classList.remove('show');
 
-/* ════════════════════════════════════════════
-   LANGUAGE
-════════════════════════════════════════════ */
-function toggleLangMenu() { document.getElementById('langMenu').classList.toggle('show'); }
-function setLang(code, flag, name) {
-  currentLang=code;
-  document.getElementById('langFlag').textContent=flag;
-  document.getElementById('langName').textContent=name;
-  document.getElementById('langMenu').classList.remove('show');
-  document.querySelectorAll('.langOpt').forEach(el=>el.classList.toggle('active',el.textContent.includes(name)));
-  if (listening) {
-    if (recognition){try{recognition.abort();}catch(_){}}
-    recognition=buildRecognition();
-    setTimeout(()=>{try{recognition.start();}catch(_){}},150);
+  if (text.length > 6 && text !== lastSentText) {
+    lastSentText = text;
+    callAI(text);
   }
 }
-document.addEventListener('click',e=>{
-  if(!e.target.closest('#langBtn')&&!e.target.closest('#langMenu'))
+
+/* ══════════════════════════════════════════════
+   MANUAL INPUT
+══════════════════════════════════════════════ */
+function sendManual() {
+  const inp  = document.getElementById('manIn');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  lastSentText = text;
+  callAI(text);
+}
+
+/* ══════════════════════════════════════════════
+   LANGUAGE
+══════════════════════════════════════════════ */
+function toggleLangMenu() { document.getElementById('langMenu').classList.toggle('show'); }
+function setLang(code, flag, name) {
+  currentLang = code;
+  document.getElementById('langFlag').textContent = flag;
+  document.getElementById('langName').textContent = name;
+  document.getElementById('langMenu').classList.remove('show');
+  document.querySelectorAll('.langOpt').forEach(el =>
+    el.classList.toggle('active', el.textContent.trim().startsWith(flag)));
+  if (listening) {
+    if (recognition) { try { recognition.abort(); } catch(_){} }
+    recognition = buildRecognition();
+    setTimeout(() => { try { recognition.start(); } catch(_){} }, 150);
+  }
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#langBtn') && !e.target.closest('#langMenu'))
     document.getElementById('langMenu').classList.remove('show');
 });
 
-/* ════════════════════════════════════════════
-   MANUAL INPUT
-════════════════════════════════════════════ */
-function sendManual() {
-  const inp=document.getElementById('manIn');
-  const text=inp.value.trim(); if(!text)return;
-  inp.value='';
-  confirmedWords=text.split(/\s+/).filter(Boolean);
-  interimText=''; lastRendered='';
-  renderLive(text);
-  setTimeout(()=>{ callAI(text); confirmedWords=[]; },300);
-}
-
-/* ════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    FULLSCREEN
-════════════════════════════════════════════ */
-function toggleFS(){
-  const el=document.getElementById('slideWrap');
-  if(document.fullscreenElement||document.webkitFullscreenElement){
-    (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+══════════════════════════════════════════════ */
+function toggleFS() {
+  const el = document.getElementById('slideWrap');
+  if (document.fullscreenElement || document.webkitFullscreenElement) {
+    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
     document.body.classList.remove('fs');
   } else {
-    if(el.requestFullscreen)el.requestFullscreen();
-    else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
     document.body.classList.add('fs');
   }
 }
-document.addEventListener('fullscreenchange',()=>{
-  if(!document.fullscreenElement)document.body.classList.remove('fs');
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) document.body.classList.remove('fs');
 });
 </script>
 
